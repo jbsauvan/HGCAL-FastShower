@@ -12,20 +12,21 @@ namespace Constants {
   extern const double mipenergy = 0.000055; // mip energy for 200 microns Si
 
   // geometry
-  extern const bool readgeom=true;
-  //extern const bool readgeom=false;
+  //extern const bool readgeom=true;
+  extern const bool readgeom=false;
 
   // all parameters bellow correspond to simplified parameterised geometry, ignored if readgeom=true
   extern const int nx=31; // number of cells along x
   extern const int ny=31; // number of cells along y
-  //extern const double a = 0.649; // the hexagon side in cm for large cells from SiHexGeometry.pdf 
-  extern const double a = 0.22727; // the hexagon side in cm for large cells from SiHexGeometry.pdf 
-  //extern const double a = 0.476; // the hexagon side in cm for small cells from SiHexGeometry.pdf 
+  //extern const double a = 0.649; // the cell side in cm for large cells from SiHexGeometry.pdf 
+  extern const double a = 1.590; // multiply cell side by sqrt(6) for triangles to get equal area
+  //extern const double a = 0.22727; // the cell side in cm for large cells from SiHexGeometry.pdf 
+  //extern const double a = 0.476; // the cell side in cm for small cells from SiHexGeometry.pdf 
   extern const double asqrt3 = a*std::sqrt(3.);
   extern const double asqrt3over2 = asqrt3/2.;
   extern const double aover2 = a/2.;
-  extern const double offsetx[6] = {asqrt3over2,asqrt3over2,0.,-asqrt3over2,-asqrt3over2,0};
-  extern const double offsety[6] = {-aover2,aover2,a,aover2,-aover2,-a};
+  //extern const int itype=0; // polygon type (0=hexagons, 1=triangles)
+  extern const int itype=1; // polygon type (0=hexagons, 1=triangles)
 
   // importing a full geometry from json file, used if readgeom=true
   extern const std::string geomfile="./AC_11.json"; // aligned centered, d=11
@@ -48,19 +49,22 @@ namespace Constants {
 
   // shooting position and direction
   // shooting position is the transverse position at HGCAL entry, ie at layer 0
-  // below we shoot at center of the (4,8) cell in the parameterised geometry
-  //extern const int iinc = 4-ioffsetparam; 
-  extern const int iinc = 4; 
-  extern const int jinc = 8;              
+  // below we shoot at center of the (4,8) cell in the parameterised hexagonal geometry
+  //extern const int iinc = 4; 
+  //extern const int jinc = 8; 
   //extern const double xinc = iinc*asqrt3+jinc*asqrt3over2;
   //extern const double yinc = jinc*asqrt3*asqrt3over2/a;
-  //  below we shoot at the border between the (4,8) and (5,8) cells in x and y
-  //extern const double epsilon=0.000;
-  //extern const double xinc = iinc*asqrt3+jinc*asqrt3over2+asqrt3over2-epsilon;
-  //extern const double yinc = jinc*asqrt3*asqrt3over2/a;
-  // for full geometry the origin is at (0,0)
-  extern const double xinc = 0.;
-  extern const double yinc = 0.;
+  // below we shoot at center of the (3,4) cell in the parameterised triangular geometry
+  extern const int iinc = 3; 
+  extern const int jinc = 4;              
+  extern const double xinc = iinc*aover2+jinc*aover2;
+  extern const double yinc = jinc*asqrt3over2+(iinc+1)%2*asqrt3/6.;
+  // below we shoot at the corner od cell(3,4) in the parameterised triangular geometry
+  //extern const double xinc = iinc*aover2+jinc*aover2 + aover2;
+  //extern const double yinc = jinc*asqrt3over2 -asqrt3over2/3.;
+  // below we shoot at the center of the module for full geometry 
+  //extern const double xinc = 0.;
+  //extern const double yinc = 0.;
 
   extern const double etainc=2.;
 

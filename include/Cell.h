@@ -10,9 +10,6 @@ class Cell {
 
   public:
     Cell() {} // default constructor
-    // constructors for parametrized geometries
-    Cell(double, double);
-    Cell(int, int);
     // constructor for full geometries
     Cell(TVectorD *, std::vector<TVectorD *> *, double, int, int); 
     Cell(const Cell&);

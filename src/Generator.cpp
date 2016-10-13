@@ -42,7 +42,7 @@ void Generator::simulate(int nevents) {
   Geometry geometry;
   if (!readgeom) {
     //Geometry geometry(nx,ny); // constructor for z=0 => HGCAL front face
-    geometry.constructFromParameters(nx,ny,klayer); // constructor for layer klayer
+    geometry.constructFromParameters(nx,ny,klayer,itype); // constructor for layer klayer
     std::cout << " " << std::endl;
   } else {
     // constructing geometry from JSON
@@ -210,6 +210,11 @@ void Generator::simulate(int nevents) {
 
       // for half-cell or boarder cells, check it is within the cell
       bool isincell = geometry.isInCell(pos,cell);
+      if (!isincell) { 
+        std::cout << "[main] point is not inside the closest cell!  x,y" << x << " " << y << 
+          " cell position " << cell.getPosition()(0) << " " << cell.getPosition()(1) << 
+          " closest cell indices " << geometry.getIIndex(cell) << " " <<  geometry.getJIndex(cell)<< std::endl;
+      }
 
       // add energy to corresponding cell
       if (isincell) 
@@ -319,6 +324,7 @@ void Generator::display(Geometry& geometry, std::map<Cell,TH1F*,CellComp>& hCell
 
   TCanvas *c1 = new TCanvas(title.c_str(),title.c_str(),40,40,700,700);
   double scale=1./(nxdisplay*asqrt3);
+  if (geometry.getType()==1) scale=1./(nxdisplay*aover2);
   //double textsize=0.02;
   geometry.draw(scale);
 

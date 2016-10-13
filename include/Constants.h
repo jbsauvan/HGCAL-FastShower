@@ -22,8 +22,7 @@ namespace Constants {
   extern const double asqrt3;
   extern const double asqrt3over2;
   extern const double aover2;
-  extern const double offsetx[6];
-  extern const double offsety[6];
+  extern const int itype;
 
   // importing a full geometry from json file, used if readgeom=true
   extern const std::string geomfile; // aligned centered, d=11

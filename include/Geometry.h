@@ -11,9 +11,11 @@
 
 class Geometry {
 
-  // a tesselation of the plane with hexagonal cells
+  // a tesselation of the plane with polygonal cells/
   // by default the plane is at z=0 but can be shifted to a z position that
   // corresponds to a layer position from TP geometry 
+  // itype=0: hexagonal cells
+  // itype=1: triangular cells
 
   public:
 
@@ -21,7 +23,8 @@ class Geometry {
     ~Geometry() {}
 
     // construct parametrised geometry
-    void constructFromParameters(int nrows=11,int ncols=11,int klayer=-1); //default grid 11x11, ie +-5 around the central cell
+    void constructFromParameters(int nrows=11,int ncols=11,int klayer=-1, int itype=0); //default grid 11x11, ie +-5 around the central cell
+
     // construct geometry from json
     void constructFromJson(const std::string&);
     //std::vector<Cell *> getCells() {return cells_;}
@@ -45,6 +48,8 @@ class Geometry {
     int getJIndex(Cell cell);
     int getLayer() {return klayer_;}
     double getZlayer() {return zlayer_;}
+    int getType() {return itype_;} 
+
 
     void draw(double scale=0.1);
     void print();
@@ -56,14 +61,16 @@ class Geometry {
     void setNcols(int ncols) {ncols_ = ncols;}
     void setLayer(int klayer);
     void setZlayer(double zlayer) {zlayer_ = zlayer;}
+    void setType (int itype) {itype_=itype;}
+
 
     std::vector<Cell *> cells_;
     int nrows_;
     int ncols_;
     int klayer_;
     double zlayer_;
+    int itype_; // cell type
 
-    TMatrixD rotation60;
 
 };
 
