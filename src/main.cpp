@@ -11,10 +11,9 @@ int main(int argc, char** argv) {
   {
     std::cout<<"Usage:\n";
     std::cout<<" shower_simulation.exe config_file_name\n";
-    exit(1);
+    return 1;
   }
 
-  std::cout<<argv[1]<<"\n";
   std::string config_file(argv[1]);
   Parameters params;
   try
@@ -26,7 +25,7 @@ int main(int argc, char** argv) {
     std::cout<<"Error reading python config file:\n";
     PyErr_Print();
     PyErr_Clear();
-    exit(1);
+    return 2;
   }
 
   params.print();
