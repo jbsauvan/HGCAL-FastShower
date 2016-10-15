@@ -3,8 +3,8 @@
 
 CC   =   g++
 
-UCFLAGS = -O0 -g3 -Wall -gstabs+  
-#UCFLAGS = -O3 -Wall -gstabs+
+#UCFLAGS = -O0 -g3 -Wall -gstabs+  
+UCFLAGS = -O3 -g3 -Wall -gstabs+
 
 RUCFLAGS := $(shell root-config --cflags) -I./include/ -I./external/jsoncpp/
 LIBS :=  $(shell root-config --libs)  
@@ -17,6 +17,9 @@ SRCPP = main.cpp\
 	Geometry.cpp\
 	Generator.cpp\
 	Constants.cpp\
+	ShowerShape.cpp\
+	ShowerShapeHexagon.cpp\
+	ShowerShapeTriangle.cpp\
 	jsoncpp.cpp
 
          

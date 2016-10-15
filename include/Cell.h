@@ -6,14 +6,11 @@
 #include "TVectorD.h"
 
 class Cell {
-  // an hexagonal cell
+  // an polygonal cell
 
   public:
     Cell() {} // default constructor
-    // constructors for parametrized geometries
-    Cell(double, double);
-    Cell(int, int);
-    // constructor for full geometries
+    // constructor for parametrized and full geometries
     Cell(TVectorD *, std::vector<TVectorD *> *, double, int, int); 
     Cell(const Cell&);
     Cell& operator=(const Cell&);
@@ -38,11 +35,10 @@ class Cell {
 };
 
 struct CellComp {
-  bool operator() (const Cell& c1, const Cell& c2) const {
-    if (c1.getIIndex()!=c2.getIIndex()) return (c1.getIIndex()<c2.getIIndex());
-    else return (c1.getJIndex()<c2.getJIndex());
+  bool operator() (const Cell* c1, const Cell* c2) const {
+    if (c1->getIIndex()!=c2->getIIndex()) return (c1->getIIndex()<c2->getIIndex());
+    else return (c1->getJIndex()<c2->getJIndex());
   }
 };
-
 
 #endif
