@@ -6,6 +6,7 @@
 #include "Constants.h"
 #include "json/json.h"
 #include "TPolyLine.h"
+#include <algorithm>
 
 using namespace Constants;
 
@@ -193,6 +194,11 @@ void Geometry::constructFromParameters(int nrows,int ncols,int klayer, int itype
   if (itype==0) std:: cout << "with hexagonal cells " << std::endl;
   else if (itype==1) std:: cout << "with triangular cells " << std::endl;
 
+  // itype=0: heaxgonal cells
+  // itype=1: triangular cells
+  if (itype==0) std:: cout << "with hexagonal cells " << std::endl;
+  else if (itype==1) std:: cout << "with triangular cells " << std::endl;
+  
   setNrows(nrows);
   setNcols(ncols);
   setLayer(klayer);
@@ -209,7 +215,6 @@ void Geometry::constructFromParameters(int nrows,int ncols,int klayer, int itype
   const double downtriangleoffsety[nverticestriangle] = {asqrt3over2/3.,asqrt3over2/3.,-asqrt3/3.};
   int nvertices=nverticeshexagon;
   if (itype==1) nvertices=nverticestriangle;
-
   std::vector<Cell *> cells;
   // reserve memory for vector of cells
   cells.reserve(nrows*ncols);
@@ -224,14 +229,13 @@ void Geometry::constructFromParameters(int nrows,int ncols,int klayer, int itype
   // I index run along x axis is defined such that hexagons are adjacent by side along this axis
   // J index runs along the y' axis is rotated by 60deg wrt x axis  
 
-  // define an offset along the x-axis to fully fill the display pad with hexagons
+  // define an offset along the x-axis to fully fill the display pad with cells
   double xoffset = ioffsetparam*asqrt3;
   if (itype==1) xoffset = ioffsetparam*aover2;
 
-  for (int i=0; i<nrows_;i++) {
-
+ for (int i=0; i<nrows_;i++) {
+  
     for (int j=0; j<ncols_;j++) {
-
       if (debug) std::cout << "Creating new cell of type " << itype << " : " << std::endl;
       if (debug) std::cout << " mapping coordinates : " << 
         i << " " <<
@@ -283,12 +287,10 @@ void Geometry::constructFromParameters(int nrows,int ncols,int klayer, int itype
       //cells.push_back(new Cell(x,y));
       cells.push_back(new Cell(position,vertices,orientation,i,j));
 
-
     }
-
+  
   }
   setCells(cells);
-
 }
 
 void Geometry::setLayer(int klayer) {
@@ -341,7 +343,6 @@ void Geometry::draw(double scale) {
     polygon->SetFillColor(38);
     polygon->SetLineColor(4);
     polygon->SetLineWidth(1);
-    //polygon->Draw("f");
     polygon->Draw();
   } 
 
@@ -374,19 +375,18 @@ TVectorD Geometry::getPosition(int i, int j) {
 
 }
 
-Cell Geometry::closestCell(double x, double y) {
+Cell * Geometry::closestCell(double x, double y) {
 
   // beware that this function does not explicit check that the point is within
-  // the hexagon, therefore if the hexagon grid is too small it will return
+  // the cell, therefore if the cell grid is too small it will return
   // the closest cell (as the name indicates)
 
   // here we implement the a temporary bruteforce function for the more general geometry read from the json file
   // this needs to be optimize for timing efficiency
 
-  // intialize to Cel(-999,-999) to identify unfound cells
-  //int ifound=-999;
-  //int jfound=-999;
-
+  // to test time spent here
+  //return *cells_.begin();
+ 
   double r2min=99999.;
   std::vector<Cell *>::iterator ic, icfound;
   for (ic=cells_.begin();ic!=cells_.end();ic++) { 
@@ -406,19 +406,19 @@ Cell Geometry::closestCell(double x, double y) {
     std::cout << "[Geometry::closestCell] Cell not found!! x, y " << 
       x << " " << y << std::endl;
 
-  return Cell(**icfound);
+  return *icfound;
 
 }
 
 TVectorD Geometry::positionInCell(TVectorD position) {
 
   TVectorD relativeposition(2);
-  relativeposition=position-closestCell(position(0),position(1)).getPosition();
+  relativeposition=position-closestCell(position(0),position(1))->getPosition();
   return relativeposition;
 
 }
 
-bool Geometry::isInCell(TVectorD position, Cell cell) {
+bool Geometry::isInCell(TVectorD position, const Cell& cell) {
 
   // implementation below works for any convex cell described by its vertices
   // assumes vertices are consecutive along the cell perimeter and ordered along direct rotation

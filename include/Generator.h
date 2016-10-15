@@ -14,7 +14,8 @@ class Generator {
     ~Generator() {};
 
     void simulate(int);
-    void display(Geometry& geometry, std::map<Cell,TH1F*,CellComp>& hCellEnergyEvtMap, int ievt=0);
+    //void display(Geometry& geometry, std::map<Cell,TH1F*,CellComp>& hCellEnergyEvtMap, int ievt=0);
+    void display(Geometry& geometry, std::map<Cell*,TH1F*,CellComp>& hCellEnergyEvtMap, int ievt=0);
 
 };
 

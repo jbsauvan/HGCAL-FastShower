@@ -4,15 +4,19 @@
 
 namespace Constants {
   extern const bool debug = false;
-  extern const bool fluctuation = false;
+  extern const bool fluctuation = true;
 
   extern const double energy = 100.;
   extern const double nhitspergev = 1000.; // nbr hits per GeV, used only if fluctuation is false 
   extern const double alpha = 0.25; // the sampling parameter, determines nhitspergev if fluctuation is true 
-  extern const double mipenergy = 0.000055; // mip energy for 200 microns Si
+  extern const double mipenergy = 0.000055; // for 200 microns Si
+  extern const double sampling=0.0055; // taken from 600mips in layer max for 75 GeV e-
+
+  // electronic noise
+  extern const bool noise=true;
+  extern const double sigmanoise=1.; // noise in mips
 
   // geometry
-  //extern const bool readgeom=true;
   extern const bool readgeom=false;
 
   // all parameters bellow correspond to simplified parameterised geometry, ignored if readgeom=true
@@ -22,6 +26,7 @@ namespace Constants {
   extern const double a = 1.590; // multiply cell side by sqrt(6) for triangles to get equal area
   //extern const double a = 0.22727; // the cell side in cm for large cells from SiHexGeometry.pdf 
   //extern const double a = 0.476; // the cell side in cm for small cells from SiHexGeometry.pdf 
+
   extern const double asqrt3 = a*std::sqrt(3.);
   extern const double asqrt3over2 = asqrt3/2.;
   extern const double aover2 = a/2.;
@@ -68,29 +73,17 @@ namespace Constants {
 
   extern const double etainc=2.;
 
-  // layers' z positions
+  // layers' z positions, this should move in the geometry
   // from CMSSW V7 geometry: https://indico.cern.ch/event/458374/contribution/9/attachments/1179028/1828217/Andreev_29Oct2015.pdf 
   // the values are the silicon (centre) z positions of the 28 layers wrt HGCAL z entry position in cm 
   extern const double zlayers[28] = {.765,1.515,2.745,3.495,4.725,5.475,6.705,7.455,8.685,9.435,
     10.745,11.615,12.925,13.795,15.105,15.975,17.285,18.155,19.465,20.335,
     21.785,22.855,24.305,25.375,26.825,27.895,29.345,30.415};
-  // layers energy profile
-  // from TP geometry, average for 35 geV Pt electrons
-  // to simulate 28-layers V7 geometry, group the first two layers and drop the last one according to:
-  // https://indico.cern.ch/event/458374/contribution/9/attachments/1179028/1828217/Andreev_29Oct2015.pdf 
-  extern const double elayers[28] = {40.0,69.8,119.6,178.9,248.8,315.1,382.0,431.6,477.7,
-    498.7,533.6,514.8,490.0,435.1,386.7,325.4,277.9,224.4,186.5,
-    145.3,108.7,73.7,52.1,33.0,22.5,13.1,8.6,4.8};
-
+ 
   // shower parameters:
-  // transverse profile described by an exponential at a given depth
-  // exponential parameter set from TP studies, 90% containment in 2.3cm at layer 15
-  extern const double r0layer15=2.3/std::log(10.); 
-  // evolution vs depth described by a parabolic function
-  // set from TP studies (AMM), accuracy better than 5%
-  extern const double a0=9.-(18./63.); 
-  extern const double a1=135./630.;
-  extern const double a2=45./630.;
+  extern const double radlen=0.968; // radiation length in cm
+  extern const double moliere=2.3; // moliere radius in cm
+  extern const double criten=5.36; // critical energy in MeV
 
 
 }

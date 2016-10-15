@@ -11,7 +11,7 @@
 
 class Geometry {
 
-  // a tesselation of the plane with polygonal cells/
+  // a tesselation of the plane with polygonal cells
   // by default the plane is at z=0 but can be shifted to a z position that
   // corresponds to a layer position from TP geometry 
   // itype=0: hexagonal cells
@@ -22,15 +22,15 @@ class Geometry {
     Geometry() {}
     ~Geometry() {}
 
-    // construct parametrised geometry
-    void constructFromParameters(int nrows=11,int ncols=11,int klayer=-1, int itype=0); //default grid 11x11, ie +-5 around the central cell
-
-    // construct geometry from json
+    // construct parametrised geometry, default grid 11x11, ie +-5 around the central cell
+    void constructFromParameters(int nrows=11,int ncols=11,int klayer=-1, int itype=0); 
+    // construct geometry from json file
     void constructFromJson(const std::string&);
     //std::vector<Cell *> getCells() {return cells_;}
 
-    Cell closestCell(double x, double y); // the cell that contains the point
-    bool isInCell(TVectorD position, Cell cell); // test if a point is within a cell
+    Cell * closestCell(double x, double y); // the cell that contains the point
+    //Cell closestCell(double x, double y); // the cell that contains the point
+    bool isInCell(TVectorD position, const Cell& cell); // test if a point is within a cell
     //bool isInRealCell(TVectorD position, Cell cell); // to apply further mouse bite or virtual dead region 
     TVectorD positionInCell(TVectorD position); // relative position within the cell
 
@@ -50,7 +50,6 @@ class Geometry {
     double getZlayer() {return zlayer_;}
     int getType() {return itype_;} 
 
-
     void draw(double scale=0.1);
     void print();
 
@@ -63,14 +62,12 @@ class Geometry {
     void setZlayer(double zlayer) {zlayer_ = zlayer;}
     void setType (int itype) {itype_=itype;}
 
-
     std::vector<Cell *> cells_;
     int nrows_;
     int ncols_;
     int klayer_;
     double zlayer_;
     int itype_; // cell type
-
 
 };
 

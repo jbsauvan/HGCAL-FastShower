@@ -4,8 +4,8 @@
 CC   =   g++
 CCVERSIONGTEQ48 := $(shell expr `g++ -dumpversion | cut -f1,2 -d.` \>= 4.8)
 
-UCFLAGS = -O0 -g3 -Wall -gstabs+  
-#UCFLAGS = -O3 -Wall -gstabs+
+#UCFLAGS = -O0 -g3 -Wall -gstabs+  
+UCFLAGS = -O3 -g3 -Wall -gstabs+
 
 RUCFLAGS := $(shell root-config --cflags) -I./include/ -I./external/jsoncpp/ -I/usr/include/python2.7/ 
 LIBS :=  $(shell root-config --libs) -lpython2.7 -lboost_python 
@@ -19,6 +19,9 @@ SRCPP = main.cpp\
 	Generator.cpp\
 	Parameters.cpp\
 	Constants.cpp\
+	ShowerShape.cpp\
+	ShowerShapeHexagon.cpp\
+	ShowerShapeTriangle.cpp\
 	jsoncpp.cpp
 
          

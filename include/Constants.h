@@ -10,7 +10,12 @@ namespace Constants {
   extern const double energy;
   extern const double nhitspergev; // nbr hits per GeV, used only if fluctuation is false 
   extern const double alpha; // the sampling parameter, determines nhitspergev if fluctuation is true 
-  extern const double mipenergy; // mip energy for 200 microns Si
+  extern const double mipenergy; // mip energy 
+  extern const double sampling; // sampling fraction in mips
+
+  // electronic noise
+  extern const bool noise;
+  extern const double sigmanoise; // noise in mips
 
   // geometry
   extern const bool readgeom;
@@ -22,8 +27,7 @@ namespace Constants {
   extern const double asqrt3;
   extern const double asqrt3over2;
   extern const double aover2;
-  extern const int itype;
-
+  extern const int itype; // cell type
   // importing a full geometry from json file, used if readgeom=true
   extern const std::string geomfile; // aligned centered, d=11
 
@@ -44,8 +48,6 @@ namespace Constants {
   extern const int nevtdisplay; // number of individual events to display
 
   // shooting position and direction
-  // shooting position is the transverse position at HGCAL entry, ie at layer 0
-  // below we shoot at center of the (4,8) cell in the parameterised geometry
   extern const int iinc; 
   extern const int jinc;              
   extern const double xinc;
@@ -57,21 +59,11 @@ namespace Constants {
   // from CMSSW V7 geometry: https://indico.cern.ch/event/458374/contribution/9/attachments/1179028/1828217/Andreev_29Oct2015.pdf 
   // the values are the silicon (centre) z positions of the 28 layers wrt HGCAL z entry position in cm 
   extern const double zlayers[28];
-  // layers energy profile
-  // from TP geometry, average for 35 geV Pt electrons
-  // to simulate 28-layers V7 geometry, group the first two layers and drop the last one according to:
-  // https://indico.cern.ch/event/458374/contribution/9/attachments/1179028/1828217/Andreev_29Oct2015.pdf 
-  extern const double elayers[28];
 
   // shower parameters:
-  // transverse profile described by an exponential at a given depth
-  // exponential parameter set from TP studies, 90% containment in 2.3cm at layer 15
-  extern const double r0layer15; 
-  // evolution vs depth described by a parabolic function
-  // set from TP studies (AMM), accuracy better than 5%
-  extern const double a0; 
-  extern const double a1;
-  extern const double a2;
+  extern const double radlen; // radiation length in cm
+  extern const double moliere; // moliere radius in cm
+  extern const double criten; // critical energy in MeV
 
 
 }
