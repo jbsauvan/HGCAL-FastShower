@@ -7,6 +7,51 @@
 
 using namespace boost;
 
+Parameters::General::
+General():
+  events(0),
+  debug(false)
+{
+}
+
+const std::map<std::string, Parameters::Geometry::Type>
+Parameters::Geometry::type_map_ = {
+  {"Hexagons", Parameters::Geometry::Type::Hexagons},
+  {"Triangles", Parameters::Geometry::Type::Triangles},
+  {"External", Parameters::Geometry::Type::External}
+};
+
+Parameters::Geometry::
+Geometry():
+  type(Type::Undefined),
+  layer(-1),
+  layers_z(0),
+  side_length(0),
+  cells_x(0),
+  cells_y(0),
+  file("")
+{
+}
+
+Parameters::Generation::
+Generation():
+  fluctuation(false),
+  energy(0.),
+  number_of_hits_per_gev(0),
+  alpha(0.),
+  mip_energy(0.),
+  position(0.),
+  layers_energy(0)
+{
+}
+
+Parameters::Display::
+Display():
+  events(0),
+  size(0)
+{
+}
+
 Parameters::
 Parameters()
 {
@@ -38,15 +83,28 @@ void
 Parameters::
 fillGeometry(python::dict& dict)
 {
-  geometry_.type = python::extract<std::string>(dict["geometry_type"]);
-  geometry_.side_length = python::extract<double>(dict["geometry_side_length"]);
-  geometry_.cells_x = python::extract<int>(dict["geometry_cells_x"]);
-  geometry_.cells_y = python::extract<int>(dict["geometry_cells_y"]);
+  // Read parameters common to all geometry types
+  std::string type = python::extract<std::string>(dict["geometry_type"]);
+  if(Geometry::type_map_.find(type)==Geometry::type_map_.end()) throw std::string("Unknown type of geometry");
+  geometry_.type = Geometry::type_map_.at(type);
   geometry_.layer = python::extract<int>(dict["geometry_layer"]);
-  // Read vector of layers z
+  // 
   python::list layers_z = python::extract<python::list>(dict["geometry_layers_z"]);
   python::stl_input_iterator<double> begin(layers_z), end;
   geometry_.layers_z = std::vector<double>(begin,end);
+  // Read parameters for internal geometries (infinite hexagons or triangles)
+  if(geometry_.type!=Geometry::Type::External)
+  {
+    geometry_.side_length = python::extract<double>(dict["geometry_side_length"]);
+    geometry_.cells_x = python::extract<int>(dict["geometry_cells_x"]);
+    geometry_.cells_y = python::extract<int>(dict["geometry_cells_y"]);
+  }
+  // Read parameters for external json geometries
+  else
+  {
+    geometry_.file = python::extract<std::string>(dict["geometry_file"]);
+  }
+
 }
 
 void 
@@ -82,7 +140,7 @@ print() const
   std::cout<<"|-- Events = "<<general_.events<<"\n";
   std::cout<<"|-- Debug = "<<general_.debug<<"\n";
   std::cout<<"|- Geometry\n";
-  std::cout<<"|-- Type = "<<geometry_.type<<"\n";
+  std::cout<<"|-- Type = "<<static_cast<std::underlying_type<Geometry::Type>::type>(geometry_.type)<<"\n";
   std::cout<<"|-- SideLength = "<<geometry_.side_length<<"\n";
   std::cout<<"|-- Cells_X = "<<geometry_.cells_x<<"\n";
   std::cout<<"|-- Cells_Y = "<<geometry_.cells_y<<"\n";
@@ -93,6 +151,7 @@ print() const
     std::cout<<z<<" ";
   }
   std::cout<<"]\n";
+  std::cout<<"|-- File = "<<geometry_.file<<"\n";
   std::cout<<"|- Generation\n";
   std::cout<<"|-- Energy = "<<generation_.energy<<"\n";
   std::cout<<"|-- Fluctuation = "<<generation_.fluctuation<<"\n";

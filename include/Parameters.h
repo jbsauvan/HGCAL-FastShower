@@ -1,6 +1,8 @@
 #ifndef Parameters_h__
 #define Parameters_h__
 
+#include <map>
+#include <string>
 #include <boost/python.hpp>
 
 class Parameters
@@ -8,20 +10,28 @@ class Parameters
   public:
     struct General
     {
+      General();
       unsigned events;
       bool debug;
     };
     struct Geometry
     {
-      std::string type;
+      enum class Type {Hexagons, Triangles, External, Undefined};
+      const static std::map<std::string, Type> type_map_;
+      Geometry();
+      Type type;
+      int layer;
+      std::vector<double> layers_z;
+      // internal infinit geometries
       double side_length;
       int cells_x;
       int cells_y;
-      int layer;
-      std::vector<double> layers_z;
+      // external geometries
+      std::string file;
     };
     struct Generation
     {
+      Generation();
       bool fluctuation;
       double energy;
       int number_of_hits_per_gev;
@@ -33,6 +43,7 @@ class Parameters
     };
     struct Display
     {
+      Display();
       unsigned events;
       int size;
     };

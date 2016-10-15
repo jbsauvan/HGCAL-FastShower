@@ -20,11 +20,22 @@ int main(int argc, char** argv) {
   {
     params.read(config_file);
   }
-  catch(...)
+  catch(const std::string& excep)
   {
-    std::cout<<"Error reading python config file:\n";
+    std::cout<<"An error occured while reading the python config file:\n";
+    std::cout<<excep<<"\n";
+    return 2;
+  }
+  catch(const boost::python::error_already_set& excep)
+  {
+    std::cout<<"An error occured while reading the python config file:\n";
     PyErr_Print();
     PyErr_Clear();
+    return 2;
+  }
+  catch(...)
+  {
+    std::cout<<"An undefined error occured while reading the python config file\n";
     return 2;
   }
 
