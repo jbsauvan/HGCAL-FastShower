@@ -41,7 +41,12 @@ Generation():
   alpha(0.),
   mip_energy(0.),
   position(0.),
-  layers_energy(0)
+  layers_energy(0),
+  incident_x(0.),
+  incident_y(0.),
+  incident_eta(0.),
+  r0layer15(0.),
+  shower_transverse_parameters(0)
 {
 }
 
@@ -85,6 +90,7 @@ fillGeometry(python::dict& dict)
 {
   // Read parameters common to all geometry types
   std::string type = python::extract<std::string>(dict["geometry_type"]);
+  // FIXME: not needed, map::at will throw an exception if not defined
   if(Geometry::type_map_.find(type)==Geometry::type_map_.end()) throw std::string("Unknown type of geometry");
   geometry_.type = Geometry::type_map_.at(type);
   geometry_.layer = python::extract<int>(dict["geometry_layer"]);
@@ -118,8 +124,16 @@ fillGeneration(python::dict& dict)
   generation_.mip_energy = python::extract<double>(dict["generation_mip_energy"]);
   // Read vector of layers energies
   python::list layers_energy = python::extract<python::list>(dict["generation_layers_energy"]);
-  python::stl_input_iterator<double> begin(layers_energy), end;
-  generation_.layers_energy = std::vector<double>(begin,end);
+  python::stl_input_iterator<double> begin_energy(layers_energy), end_energy;
+  generation_.layers_energy = std::vector<double>(begin_energy,end_energy);
+  generation_.incident_x = python::extract<double>(dict["generation_incident_x"]);
+  generation_.incident_y = python::extract<double>(dict["generation_incident_y"]);
+  generation_.incident_eta = python::extract<double>(dict["generation_incident_eta"]);
+  generation_.r0layer15 = python::extract<double>(dict["generation_r0layer15"]);
+  //
+  python::list shower_transverse_parameters = python::extract<python::list>(dict["generation_shower_transverse_parameters"]);
+  python::stl_input_iterator<double> begin_profile(shower_transverse_parameters), end_profile;
+  generation_.shower_transverse_parameters = std::vector<double>(begin_profile,end_profile);
 }
 
 void 
@@ -158,11 +172,19 @@ print() const
   std::cout<<"|-- Hits/GeV = "<<generation_.number_of_hits_per_gev<<"\n";
   std::cout<<"|-- Alpha = "<<generation_.alpha<<"\n";
   std::cout<<"|-- Mip energy = "<<generation_.mip_energy<<"\n";
-  std::cout<<"|-- Position = "<<generation_.position<<"\n";
+  std::cout<<"|-- Position = ("<<generation_.incident_x<<" "<<generation_.incident_y<<")\n";
+  std::cout<<"|-- Angle (eta) = "<<generation_.incident_eta<<"\n";
   std::cout<<"|-- Layers energy = [";
   for(const auto& e : generation_.layers_energy)
   {
     std::cout<<e<<" ";
+  }
+  std::cout<<"]\n";
+  std::cout<<"|-- R_0(15) = "<<generation_.r0layer15<<"\n";
+  std::cout<<"|-- Transverse parameters = [";
+  for(const auto& p : generation_.shower_transverse_parameters)
+  {
+    std::cout<<p<<" ";
   }
   std::cout<<"]\n";
   std::cout<<"|- Display\n";

@@ -39,7 +39,11 @@ class Parameters
       double mip_energy;
       double position;
       std::vector<double> layers_energy;
-
+      double incident_x;
+      double incident_y;
+      double incident_eta;
+      double r0layer15;
+      std::vector<double> shower_transverse_parameters;
     };
     struct Display
     {

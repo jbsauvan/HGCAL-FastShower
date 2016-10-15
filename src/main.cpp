@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
     return 2;
   }
 
-  params.print();
+  if(params.general().debug) params.print();
 
   //Generator generator;
   //generator.simulate(nevents);
