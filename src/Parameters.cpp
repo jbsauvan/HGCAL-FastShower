@@ -1,5 +1,7 @@
 
 #include <iostream>
+#include <boost/python/object.hpp>
+#include <boost/python/stl_iterator.hpp>
 #include "Parameters.h"
 
 
@@ -41,6 +43,10 @@ fillGeometry(python::dict& dict)
   geometry_.cells_x = python::extract<int>(dict["geometry_cells_x"]);
   geometry_.cells_y = python::extract<int>(dict["geometry_cells_y"]);
   geometry_.layer = python::extract<int>(dict["geometry_layer"]);
+  // Read vector of layers z
+  python::list layers_z = python::extract<python::list>(dict["geometry_layers_z"]);
+  python::stl_input_iterator<double> begin(layers_z), end;
+  geometry_.layers_z = std::vector<double>(begin,end);
 }
 
 void 
@@ -52,6 +58,10 @@ fillGeneration(python::dict& dict)
   generation_.number_of_hits_per_gev = python::extract<int>(dict["generation_number_of_hits_per_gev"]);
   generation_.alpha = python::extract<double>(dict["generation_alpha"]);
   generation_.mip_energy = python::extract<double>(dict["generation_mip_energy"]);
+  // Read vector of layers energies
+  python::list layers_energy = python::extract<python::list>(dict["generation_layers_energy"]);
+  python::stl_input_iterator<double> begin(layers_energy), end;
+  generation_.layers_energy = std::vector<double>(begin,end);
 }
 
 void 
@@ -77,6 +87,12 @@ print() const
   std::cout<<"|-- Cells_X = "<<geometry_.cells_x<<"\n";
   std::cout<<"|-- Cells_Y = "<<geometry_.cells_y<<"\n";
   std::cout<<"|-- Layer = "<<geometry_.layer<<"\n";
+  std::cout<<"|-- Layers z = [";
+  for(const auto& z : geometry_.layers_z)
+  {
+    std::cout<<z<<" ";
+  }
+  std::cout<<"]\n";
   std::cout<<"|- Generation\n";
   std::cout<<"|-- Energy = "<<generation_.energy<<"\n";
   std::cout<<"|-- Fluctuation = "<<generation_.fluctuation<<"\n";
@@ -84,6 +100,12 @@ print() const
   std::cout<<"|-- Alpha = "<<generation_.alpha<<"\n";
   std::cout<<"|-- Mip energy = "<<generation_.mip_energy<<"\n";
   std::cout<<"|-- Position = "<<generation_.position<<"\n";
+  std::cout<<"|-- Layers energy = [";
+  for(const auto& e : generation_.layers_energy)
+  {
+    std::cout<<e<<" ";
+  }
+  std::cout<<"]\n";
   std::cout<<"|- Display\n";
   std::cout<<"|-- Events = "<<display_.events<<"\n";
   std::cout<<"|-- Size = "<<display_.size<<"\n";

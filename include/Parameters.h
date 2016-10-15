@@ -18,6 +18,7 @@ class Parameters
       int cells_x;
       int cells_y;
       int layer;
+      std::vector<double> layers_z;
     };
     struct Generation
     {
@@ -27,6 +28,7 @@ class Parameters
       double alpha;
       double mip_energy;
       double position;
+      std::vector<double> layers_energy;
 
     };
     struct Display
