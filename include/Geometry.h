@@ -7,6 +7,7 @@
 #include "TVectorD.h"
 #include "TMatrixD.h"
 #include "Cell.h"
+#include "Parameters.h"
 
 
 class Geometry {
@@ -23,7 +24,7 @@ class Geometry {
     ~Geometry() {}
 
     // construct parametrised geometry, default grid 11x11, ie +-5 around the central cell
-    void constructFromParameters(int nrows=11,int ncols=11,int klayer=-1, int itype=0); 
+    void constructFromParameters(double a, int nrows=11,int ncols=11,int klayer=-1, Parameters::Geometry::Type itype=Parameters::Geometry::Type::Hexagons); 
     // construct geometry from json file
     void constructFromJson(const std::string&);
     //std::vector<Cell *> getCells() {return cells_;}
@@ -48,7 +49,12 @@ class Geometry {
     int getJIndex(Cell cell);
     int getLayer() {return klayer_;}
     double getZlayer() {return zlayer_;}
-    int getType() {return itype_;} 
+    Parameters::Geometry::Type getType() {return itype_;} 
+
+    double a() const {return a_;}
+    double asqrt3() const {return asqrt3_;}
+    double aover2() const {return aover2_;}
+    double asqrt3over2() const {return asqrt3over2_;}
 
     void draw(double scale=0.1);
     void print();
@@ -60,14 +66,18 @@ class Geometry {
     void setNcols(int ncols) {ncols_ = ncols;}
     void setLayer(int klayer);
     void setZlayer(double zlayer) {zlayer_ = zlayer;}
-    void setType (int itype) {itype_=itype;}
+    void setType (Parameters::Geometry::Type itype) {itype_=itype;}
 
     std::vector<Cell *> cells_;
     int nrows_;
     int ncols_;
     int klayer_;
     double zlayer_;
-    int itype_; // cell type
+    Parameters::Geometry::Type itype_; // cell type
+    double a_;
+    double asqrt3_;
+    double aover2_;
+    double asqrt3over2_;
 
 };
 

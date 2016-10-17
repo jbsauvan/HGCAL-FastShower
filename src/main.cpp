@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
 
   if(params.general().debug) params.print();
 
-  //Generator generator;
-  //generator.simulate(nevents);
+  Generator generator(params);
+  generator.simulate();
   return 0;
 }
