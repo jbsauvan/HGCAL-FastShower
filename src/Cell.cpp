@@ -1,9 +1,13 @@
-#include "Cell.h"
-#include "Constants.h"
+
+
 #include "TMath.h"
+#ifdef STANDALONE
+#include "Cell.h"
+#else
+#include "HGCalSimulation/FastShower/interface/Cell.h"
+#endif
 
 
-using namespace Constants;
 
 Cell::Cell(const Cell& cell) {
   orientation_ = cell.getOrientation();

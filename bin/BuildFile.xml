@@ -1,0 +1,3 @@
+<bin file="main.cpp" name="shower_simulation.exe">
+  <use name="HGCalSimulation/FastShower"/>
+</bin>

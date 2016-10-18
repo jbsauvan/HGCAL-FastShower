@@ -2,21 +2,26 @@
 
 
 CC   =   g++
+CCVERSIONGTEQ48 := $(shell expr `g++ -dumpversion | cut -f1,2 -d.` \>= 4.8)
 
-UCFLAGS = -O0 -g3 -Wall -gstabs+  
-#UCFLAGS = -O3 -Wall -gstabs+
+#UCFLAGS = -O0 -g3 -Wall -gstabs+ -DSTANDALONE
+UCFLAGS = -O3 -Wall -DSTANDALONE
 
-RUCFLAGS := $(shell root-config --cflags) -I./include/ -I./external/jsoncpp/
-LIBS :=  $(shell root-config --libs)  
+RUCFLAGS := $(shell root-config --cflags) -I./interface/ -I/usr/include/python2.7/ 
+LIBS :=  $(shell root-config --libs) -lpython2.7 -lboost_python 
 
-vpath %.cpp ./external/jsoncpp
+vpath %.cpp ./src/json
 vpath %.cpp ./src
+vpath %.cpp ./bin
 
 SRCPP = main.cpp\
 	Cell.cpp\
 	Geometry.cpp\
 	Generator.cpp\
-	Constants.cpp\
+	Parameters.cpp\
+	ShowerShape.cpp\
+	ShowerShapeHexagon.cpp\
+	ShowerShapeTriangle.cpp\
 	jsoncpp.cpp
 
          
@@ -24,17 +29,21 @@ SRCPP = main.cpp\
 OBJCPP = $(patsubst %.cpp,lib/%.o,$(SRCPP))
 
 
-all : shower_simulation.exe 
-	#obj/libDictionary_C.so
+ifeq "$(CCVERSIONGTEQ48)" "0"
+  $(error Requires g++ version >= 4.8)
+endif
+
+all : bin/shower_simulation.exe 
 
 lib/%.o : %.cpp
 	@echo "> compiling $*"
 	@mkdir -p lib/
 	@$(CC) -c $< $(UCFLAGS) $(RUCFLAGS) -o $@
 
-shower_simulation.exe : $(OBJCPP)
+bin/shower_simulation.exe : $(OBJCPP)
 	@echo "> linking"
 	$(CC) $^ $(LIBS) -o $@
+
 
 clean:
 	@echo "> Cleaning object files"
@@ -42,4 +51,4 @@ clean:
         
 cleanall: clean
 	@echo "> Cleaning executable"
-	@rm -f shower_simulation.exe
+	@rm -f bin/shower_simulation.exe

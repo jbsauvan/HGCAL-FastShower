@@ -2,12 +2,17 @@
 
 #include <fstream>
 #include <iostream>
-#include "Geometry.h"
-#include "Constants.h"
-#include "json/json.h"
+#include <algorithm>
+
 #include "TPolyLine.h"
 
-using namespace Constants;
+#ifdef STANDALONE
+#include "Geometry.h"
+#include "json/json.h"
+#else
+#include "HGCalSimulation/FastShower/interface/Geometry.h"
+#include "HGCalSimulation/FastShower/interface/json/json.h"
+#endif
 
 std::string fixedLength(int value, int digits = 5, std::string type="FH") {
 
@@ -40,13 +45,16 @@ std::string fixedLength(int value, int digits = 5, std::string type="FH") {
 }
 
 
-void Geometry::constructFromJson(const std::string& filename) {
+void Geometry::constructFromJson(bool debug) {
+
+  itype_ = Parameters::Geometry::Type::External;
+  const std::string& filename = parameters_.file;
 
   // first set klayer and zlayer according to user parameters
-  setLayer(klayer);
+  setLayer(parameters_.layer);
   double zlayer;
-  if (klayer == -1) zlayer = 0.;  // entry face required
-  else zlayer = zlayers[klayer]; // else offset from the layer z position
+  if (klayer_ == -1) zlayer = 0.;  // entry face required
+  else zlayer = parameters_.layers_z[klayer_]; // else offset from the layer z position
   // to force being at the center for any requested layer
   //zlayer = 0.; 
   setZlayer(zlayer);
@@ -182,41 +190,54 @@ void Geometry::constructFromJson(const std::string& filename) {
 
 }
 
-void Geometry::constructFromParameters(int nrows,int ncols,int klayer, int itype) {
+void Geometry::constructFromParameters(bool debug) {
 
+  double a(parameters_.cell_side);
+  int nrows(parameters_.cells_nx);
+  int ncols(parameters_.cells_ny);
+  int klayer(parameters_.layer);
+  Parameters::Geometry::Type itype(parameters_.type);
 
   // a tesselation of the plane with polygons
   std::cout << " " << std::endl;
   std::cout << "Building parametrized geometry : " << nrows << " " << ncols  << std::endl;
   // itype=0: heaxgonal cells
   // itype=1: triangular cells
-  if (itype==0) std:: cout << "with hexagonal cells " << std::endl;
-  else if (itype==1) std:: cout << "with triangular cells " << std::endl;
+  if (itype==Parameters::Geometry::Type::Hexagons) std:: cout << "with hexagonal cells " << std::endl;
+  else if (itype==Parameters::Geometry::Type::Triangles) std:: cout << "with triangular cells " << std::endl;
 
+  // itype=0: heaxgonal cells
+  // itype=1: triangular cells
+  if (itype==Parameters::Geometry::Type::Hexagons) std:: cout << "with hexagonal cells " << std::endl;
+  else if (itype==Parameters::Geometry::Type::Triangles) std:: cout << "with triangular cells " << std::endl;
+  
   setNrows(nrows);
   setNcols(ncols);
   setLayer(klayer);
   setType(itype);
+  a_ = a;
+  asqrt3_ = a*std::sqrt(3.);
+  asqrt3over2_ = asqrt3_/2.;
+  aover2_ = a/2.;
 
   // vertices coordinates wrt cell center
   const int nverticeshexagon=6; // hexagons
   const int nverticestriangle=3; // hexagons  
-  const double hexagonoffsetx[nverticeshexagon] = {asqrt3over2,asqrt3over2,0.,-asqrt3over2,-asqrt3over2,0};
-  const double hexagonoffsety[nverticeshexagon] = {-aover2,aover2,a,aover2,-aover2,-a};
-  const double uptriangleoffsetx[nverticestriangle] = {aover2,0.,-aover2};
-  const double uptriangleoffsety[nverticestriangle] = {-asqrt3over2/3.,asqrt3/3.,-asqrt3over2/3.};
-  const double downtriangleoffsetx[nverticestriangle] = {aover2,-aover2,0.};
-  const double downtriangleoffsety[nverticestriangle] = {asqrt3over2/3.,asqrt3over2/3.,-asqrt3/3.};
+  const double hexagonoffsetx[nverticeshexagon] = {asqrt3over2_,asqrt3over2_,0.,-asqrt3over2_,-asqrt3over2_,0};
+  const double hexagonoffsety[nverticeshexagon] = {-aover2_,aover2_,a_,aover2_,-aover2_,-a_};
+  const double uptriangleoffsetx[nverticestriangle] = {aover2_,0.,-aover2_};
+  const double uptriangleoffsety[nverticestriangle] = {-asqrt3over2_/3.,asqrt3_/3.,-asqrt3over2_/3.};
+  const double downtriangleoffsetx[nverticestriangle] = {aover2_,-aover2_,0.};
+  const double downtriangleoffsety[nverticestriangle] = {asqrt3over2_/3.,asqrt3over2_/3.,-asqrt3_/3.};
   int nvertices=nverticeshexagon;
-  if (itype==1) nvertices=nverticestriangle;
-
+  if (itype==Parameters::Geometry::Type::Triangles) nvertices=nverticestriangle;
   std::vector<Cell *> cells;
   // reserve memory for vector of cells
   cells.reserve(nrows*ncols);
 
   double zlayer;
   if (klayer == -1) zlayer = 0.;  // entry face required
-  else zlayer = zlayers[klayer]; // else offset from the layer z position
+  else zlayer = parameters_.layers_z[klayer]; // else offset from the layer z position
   // to force being at the center for any requested layer
   //zlayer = 0.; 
   setZlayer(zlayer);
@@ -224,28 +245,27 @@ void Geometry::constructFromParameters(int nrows,int ncols,int klayer, int itype
   // I index run along x axis is defined such that hexagons are adjacent by side along this axis
   // J index runs along the y' axis is rotated by 60deg wrt x axis  
 
-  // define an offset along the x-axis to fully fill the display pad with hexagons
-  double xoffset = ioffsetparam*asqrt3;
-  if (itype==1) xoffset = ioffsetparam*aover2;
+  // define an offset along the x-axis to fully fill the display pad with cells
+  double xoffset = parameters_.offset*asqrt3_;
+  if (itype==Parameters::Geometry::Type::Triangles) xoffset = parameters_.offset*aover2_;
 
-  for (int i=0; i<nrows_;i++) {
-
+ for (int i=0; i<nrows_;i++) {
+  
     for (int j=0; j<ncols_;j++) {
-
-      if (debug) std::cout << "Creating new cell of type " << itype << " : " << std::endl;
+      if (debug) std::cout << "Creating new cell of type " << static_cast<std::underlying_type<Parameters::Geometry::Type>::type>(itype) << " : " << std::endl;
       if (debug) std::cout << " mapping coordinates : " << 
         i << " " <<
         j << std::endl;
       double x=0., y=0.;
-      if (itype==0) { // hexagons
-        x = xoffset + i*asqrt3 + j*asqrt3over2;
-        double yprime = j*asqrt3;
+      if (itype==Parameters::Geometry::Type::Hexagons) { // hexagons
+        x = xoffset + i*asqrt3_ + j*asqrt3over2_;
+        double yprime = j*asqrt3_;
         // get back to the orthogonal y axis
-        y = yprime*asqrt3over2/a;
-      } else if (itype==1) { // triangles
-        x = xoffset + i*aover2 + j*aover2;
-        y = j*asqrt3over2;
-        if (i%2 == 1) y = y + asqrt3/6.; // cell center is shifted in y for downward triangles
+        y = yprime*asqrt3over2_/a_;
+      } else if (itype==Parameters::Geometry::Type::Triangles) { // triangles
+        x = xoffset + i*aover2_ + j*aover2_;
+        y = j*asqrt3over2_;
+        if (i%2 == 1) y = y + asqrt3_/6.; // cell center is shifted in y for downward triangles
       }
 
       //std::cout << "cell i,j,x,y " << i << " " << j << " " << x << " " << y << std::endl;
@@ -256,16 +276,16 @@ void Geometry::constructFromParameters(int nrows,int ncols,int klayer, int itype
         x << " " <<
           y << std::endl;
       double orientation = 90.;
-      if (itype == 1 && i%2 != 0) orientation =  -90.; // for downward triangles
+      if (itype == Parameters::Geometry::Type::Triangles && i%2 != 0) orientation =  -90.; // for downward triangles
       if (debug) std::cout << " orientation : " << 
         orientation << std::endl;
       std::vector<TVectorD *> *vertices = new std::vector<TVectorD *>;
       for (int iv=0; iv<nvertices; iv++) {
         TVectorD *vertex = new TVectorD(2);
-        if (itype==0) { // hexagons
+        if (itype==Parameters::Geometry::Type::Hexagons) { // hexagons
           (*vertex)(0) = x+hexagonoffsetx[iv];
           (*vertex)(1) = y+hexagonoffsety[iv];
-        } else if (itype==1) { // triangles
+        } else if (itype==Parameters::Geometry::Type::Triangles) { // triangles
           if (i%2 == 0) {
             (*vertex)(0) = x+uptriangleoffsetx[iv];
             (*vertex)(1) = y+uptriangleoffsety[iv];
@@ -283,12 +303,10 @@ void Geometry::constructFromParameters(int nrows,int ncols,int klayer, int itype
       //cells.push_back(new Cell(x,y));
       cells.push_back(new Cell(position,vertices,orientation,i,j));
 
-
     }
-
+  
   }
   setCells(cells);
-
 }
 
 void Geometry::setLayer(int klayer) {
@@ -305,7 +323,7 @@ void Geometry::setLayer(int klayer) {
 void Geometry::print() {
 
   std::cout << "Printing the geometry : " << std::endl;
-  if (klayer != -1) std::cout << "the layer plane is " << klayer_ << " at z position " << zlayers[klayer_] << std::endl;
+  if (klayer_ != -1) std::cout << "the layer plane is " << klayer_ << " at z position " << parameters_.layers_z[klayer_] << std::endl;
   else std::cout << "the layer plane is " << klayer_ << " at z position 0." << std::endl;
   std::vector<Cell *>::iterator ic;
   for (ic=cells_.begin();ic!=cells_.end();ic++) { 
@@ -318,7 +336,7 @@ void Geometry::print() {
 
 }
 
-void Geometry::draw(double scale) {
+void Geometry::draw(const Parameters::Display& params, double scale) {
 
   double summitx[7]; double summity[7];
 
@@ -326,9 +344,9 @@ void Geometry::draw(double scale) {
   // the center of the module is at the center of the pad
   double xdisplayoffset=0.;
   double ydisplayoffset=0.;
-  if (readgeom) {
-    xdisplayoffset=xdisplayoffsetfull;
-    ydisplayoffset=ydisplayoffsetfull;
+  if (itype_==Parameters::Geometry::Type::External) {
+    xdisplayoffset=params.offset_x;
+    ydisplayoffset=params.offset_y;
   }
 
   for (std::vector<Cell *>::iterator ic=cells_.begin();ic!=cells_.end();ic++) { 
@@ -341,7 +359,6 @@ void Geometry::draw(double scale) {
     polygon->SetFillColor(38);
     polygon->SetLineColor(4);
     polygon->SetLineWidth(1);
-    //polygon->Draw("f");
     polygon->Draw();
   } 
 
@@ -352,15 +369,15 @@ TVectorD Geometry::getPosition(int i, int j) {
   TVectorD position(2);
   // for parameterised geometries uses indices
   // this is error prone (code duplication), do we really gain time?
-  if (!readgeom) { 
-    if (getType()==0) { // hexagons
-      position(0) = ioffsetparam*asqrt3+i*asqrt3+j*asqrt3over2;
-      double yprime = j*asqrt3;
-      position(1) = yprime*asqrt3over2/a;
+  if (getType()!=Parameters::Geometry::Type::External) { 
+    if (getType()==Parameters::Geometry::Type::Hexagons) { // hexagons
+      position(0) = parameters_.offset*asqrt3_+i*asqrt3_+j*asqrt3over2_;
+      double yprime = j*asqrt3_;
+      position(1) = yprime*asqrt3over2_/a_;
     } else { // triangles
-      position(0) = ioffsetparam*asqrt3+i*aover2+j*aover2;
-      position(1) = j*asqrt3over2;    
-      if (i%2 == 1) position(1) = position(1) + asqrt3/6.; // cell center is shifted in y for downward triangles
+      position(0) = parameters_.offset*asqrt3_+i*aover2_+j*aover2_;
+      position(1) = j*asqrt3over2_;    
+      if (i%2 == 1) position(1) = position(1) + asqrt3_/6.; // cell center is shifted in y for downward triangles
     }
   } else { // full geometry
     std::vector<Cell *>::iterator ic;
@@ -374,19 +391,18 @@ TVectorD Geometry::getPosition(int i, int j) {
 
 }
 
-Cell Geometry::closestCell(double x, double y) {
+Cell * Geometry::closestCell(double x, double y) {
 
   // beware that this function does not explicit check that the point is within
-  // the hexagon, therefore if the hexagon grid is too small it will return
+  // the cell, therefore if the cell grid is too small it will return
   // the closest cell (as the name indicates)
 
   // here we implement the a temporary bruteforce function for the more general geometry read from the json file
   // this needs to be optimize for timing efficiency
 
-  // intialize to Cel(-999,-999) to identify unfound cells
-  //int ifound=-999;
-  //int jfound=-999;
-
+  // to test time spent here
+  //return *cells_.begin();
+ 
   double r2min=99999.;
   std::vector<Cell *>::iterator ic, icfound;
   for (ic=cells_.begin();ic!=cells_.end();ic++) { 
@@ -406,19 +422,19 @@ Cell Geometry::closestCell(double x, double y) {
     std::cout << "[Geometry::closestCell] Cell not found!! x, y " << 
       x << " " << y << std::endl;
 
-  return Cell(**icfound);
+  return *icfound;
 
 }
 
 TVectorD Geometry::positionInCell(TVectorD position) {
 
   TVectorD relativeposition(2);
-  relativeposition=position-closestCell(position(0),position(1)).getPosition();
+  relativeposition=position-closestCell(position(0),position(1))->getPosition();
   return relativeposition;
 
 }
 
-bool Geometry::isInCell(TVectorD position, Cell cell) {
+bool Geometry::isInCell(TVectorD position, const Cell& cell) {
 
   // implementation below works for any convex cell described by its vertices
   // assumes vertices are consecutive along the cell perimeter and ordered along direct rotation
