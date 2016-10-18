@@ -21,11 +21,11 @@ make
 ```
 Once it is installed and compiled, it is only needed to setup the environment each time:
 ```bash
-export setupenv
+source setupenv
 ```
 
 ### CMSSW installation
-The program can also be installed as a CMSSW package
+The program can also be installed as a CMSSW package.
 ```bash
 # First install a recent CMSSW release
 cmsenv
