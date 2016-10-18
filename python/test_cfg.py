@@ -1,6 +1,5 @@
-import sys
-sys.path.append('/home/sauvan/Documents/HEP/Projects/CMS/L1CalorimeterTrigger_Phase2HGCal/Misc/FastShower/python/')
 
+# FIXME: find a better way to import
 try:
     # Standalone imports
     from geometry_cfg import *
