@@ -25,7 +25,7 @@ namespace Constants {
   //extern const double a = 0.649; // the hexagon side in cm for large cells from SiHexGeometry.pdf 
   //extern const double a = 0.22727; // the hexagon side in cm for large cells from SiHexGeometry.pdf 
   //extern const double a = 0.476; // the hexagon side in cm for small cells from SiHexGeometry.pdf 
-  extern const double a = 1.590; // multiply cell side by sqrt(6) for triangles to get equal area
+  extern const double a = 1.190; // for triangles to get 216 cells per 6-inches wafer
   extern const double asqrt3 = a*std::sqrt(3.);
   extern const double asqrt3over2 = asqrt3/2.;
   extern const double aover2 = a/2.;

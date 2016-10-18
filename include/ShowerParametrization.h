@@ -35,8 +35,8 @@ class ShowerParametrization {
                               145.3,108.7,73.7,52.1,33.0,22.5,13.1,8.6,4.8};
       double total_weight=0.;
       for (int i=0;i<28;i++) total_weight = total_weight + elayers[i];
-      for (int i=0;i<28;i++) elayers[i] = elayers[i]/total_weight;
-      layerProfile_ = elayers;			      
+      for (int i=0;i<28;i++) layerProfile_[i] = elayers[i]/total_weight;
+
       // transverse parameters
       // exponential parameter set from TP studies, 90% containment in 2.3cm at layer 15
       //r0layer15_ = 2.3/std::log(10.);  
@@ -60,7 +60,7 @@ class ShowerParametrization {
     double sigmaLnT(double lny) const {return 1./(sigmalnt0_+sigmalnt1_*lny);}
     double sigmaLnAlpha(double lny) const {return 1./(sigmalnalpha0_+sigmalnalpha1_*lny);}
     double correlationAlphaT(double lny) const {return corrlnalphalnt0_+corrlnalphalnt1_*lny;}        
-    double *getLayerProfile() const {return layerProfile_;}
+    const double *getLayerProfile() const {return layerProfile_;}
     // transversal
     double r0(int klayer) {return klayer==-1 ? r0layer15_ : (a0_ + a1_*klayer + a2_*klayer*klayer)*r0layer15_/28.;}
 
@@ -85,7 +85,7 @@ class ShowerParametrization {
     double sigmalnalpha1_;
     double corrlnalphalnt0_;
     double corrlnalphalnt1_;
-    double *layerProfile_;
+    double layerProfile_[28];
     
     // transverse parametrisation
     double r0layer15_;
