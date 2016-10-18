@@ -1,8 +1,5 @@
 #include <iostream>
-#include "Generator.h"
-#include "ShowerParametrization.h"
-#include "ShowerShapeHexagon.h"
-#include "ShowerShapeTriangle.h"
+
 #include "TRandom3.h"
 #include "TStopwatch.h"
 #include "TCanvas.h"
@@ -10,6 +7,18 @@
 #include "TFile.h"
 #include "TText.h"
 #include "TPaveText.h"
+
+#ifdef STANDALONE
+#include "Generator.h"
+#include "ShowerParametrization.h"
+#include "ShowerShapeHexagon.h"
+#include "ShowerShapeTriangle.h"
+#else
+#include "HGCalSimulation/FastShower/interface/Generator.h"
+#include "HGCalSimulation/FastShower/interface/ShowerParametrization.h"
+#include "HGCalSimulation/FastShower/interface/ShowerShapeHexagon.h"
+#include "HGCalSimulation/FastShower/interface/ShowerShapeTriangle.h"
+#endif
 
 
 Generator::

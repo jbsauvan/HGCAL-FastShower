@@ -1,7 +1,7 @@
 
 
-#ifndef Cell_h__
-#define Cell_h__
+#ifndef __HGCalSimulation_FastShower_Cell_h__
+#define __HGCalSimulation_FastShower_Cell_h__
 
 #include "TVectorD.h"
 

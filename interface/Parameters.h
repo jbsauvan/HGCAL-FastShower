@@ -1,5 +1,5 @@
-#ifndef Parameters_h__
-#define Parameters_h__
+#ifndef __HGCalSimulation_FastShower_Parameters_h__
+#define __HGCalSimulation_FastShower_Parameters_h__
 
 #include <map>
 #include <string>

@@ -5,13 +5,14 @@ CC   =   g++
 CCVERSIONGTEQ48 := $(shell expr `g++ -dumpversion | cut -f1,2 -d.` \>= 4.8)
 
 #UCFLAGS = -O0 -g3 -Wall -gstabs+  
-UCFLAGS = -O3 -g3 -Wall -gstabs+
+UCFLAGS = -O3 -g3 -Wall -gstabs+ -DSTANDALONE
 
-RUCFLAGS := $(shell root-config --cflags) -I./include/ -I./external/jsoncpp/ -I/usr/include/python2.7/ 
+RUCFLAGS := $(shell root-config --cflags) -I./interface/ -I/usr/include/python2.7/ 
 LIBS :=  $(shell root-config --libs) -lpython2.7 -lboost_python 
 
-vpath %.cpp ./external/jsoncpp
+vpath %.cpp ./src/json
 vpath %.cpp ./src
+vpath %.cpp ./bin
 
 SRCPP = main.cpp\
 	Cell.cpp\

@@ -1,13 +1,18 @@
 
-#ifndef Geometry_h__
-#define Geometry_h__
+#ifndef __HGCalSimulation_FastShower_Geometry_h__
+#define __HGCalSimulation_FastShower_Geometry_h__
 
 #include <string>
 #include <vector>
 #include "TVectorD.h"
 #include "TMatrixD.h"
+#ifdef STANDALONE
 #include "Cell.h"
 #include "Parameters.h"
+#else
+#include "HGCalSimulation/FastShower/interface/Cell.h"
+#include "HGCalSimulation/FastShower/interface/Parameters.h"
+#endif
 
 
 class Geometry {

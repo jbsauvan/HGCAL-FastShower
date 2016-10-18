@@ -1,11 +1,18 @@
-#ifndef Generator_h__
-#define Generator_h__
+#ifndef __HGCalSimulation_FastShower_Generator_h__
+#define __HGCalSimulation_FastShower_Generator_h__
 
 #include <map>
+#include "TH1F.h"
+
+#ifdef STANDALONE
 #include "Cell.h"
 #include "Geometry.h"
 #include "Parameters.h"
-#include "TH1F.h"
+#else
+#include "HGCalSimulation/FastShower/interface/Cell.h"
+#include "HGCalSimulation/FastShower/interface/Geometry.h"
+#include "HGCalSimulation/FastShower/interface/Parameters.h"
+#endif
 
 
 class Generator {

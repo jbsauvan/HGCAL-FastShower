@@ -1,5 +1,11 @@
-#include "Cell.h"
+
+
 #include "TMath.h"
+#ifdef STANDALONE
+#include "Cell.h"
+#else
+#include "HGCalSimulation/FastShower/interface/Cell.h"
+#endif
 
 
 

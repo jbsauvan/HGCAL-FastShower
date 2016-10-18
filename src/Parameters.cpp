@@ -1,6 +1,10 @@
 
 #include <iostream>
+#ifdef STANDALONE
 #include "Parameters.h"
+#else
+#include "HGCalSimulation/FastShower/interface/Parameters.h"
+#endif
 
 
 using namespace boost;

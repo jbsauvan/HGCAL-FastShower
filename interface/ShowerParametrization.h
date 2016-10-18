@@ -1,8 +1,12 @@
 
-#ifndef ShowerParametrization_h__
-#define ShowerParametrization_h__
+#ifndef __HGCalSimulation_FastShower_ShowerParametrization_h__
+#define __HGCalSimulation_FastShower_ShowerParametrization_h__
 
+#ifdef STANDALONE
 #include "Parameters.h"
+#else
+#include "HGCalSimulation/FastShower/interface/Parameters.h"
+#endif
 
 
 class ShowerParametrization {

@@ -1,8 +1,12 @@
 
-#ifndef ShowerShapeTriangle_h__
-#define ShowerShapeTriangle_h__
+#ifndef __HGCalSimulation_FastShower_ShowerShapeTriangle_h__
+#define __HGCalSimulation_FastShower_ShowerShapeTriangle_h__
 
+#ifdef STANDALONE
 #include "ShowerShape.h"
+#else
+#include "HGCalSimulation/FastShower/interface/ShowerShape.h"
+#endif
 
 class ShowerShapeTriangle: public ShowerShape {
 

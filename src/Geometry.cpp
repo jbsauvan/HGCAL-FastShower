@@ -2,11 +2,16 @@
 
 #include <fstream>
 #include <iostream>
-#include "Geometry.h"
-#include "json/json.h"
-#include "TPolyLine.h"
 #include <algorithm>
 
+#include "json/json.h"
+#include "TPolyLine.h"
+
+#ifdef STANDALONE
+#include "Geometry.h"
+#else
+#include "HGCalSimulation/FastShower/interface/Geometry.h"
+#endif
 
 std::string fixedLength(int value, int digits = 5, std::string type="FH") {
 

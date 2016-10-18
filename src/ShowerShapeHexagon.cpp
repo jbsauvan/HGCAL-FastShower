@@ -1,5 +1,12 @@
-#include "ShowerShapeHexagon.h"
+
+
 #include "TMath.h"
+
+#ifdef STANDALONE
+#include "ShowerShapeHexagon.h"
+#else
+#include "HGCalSimulation/FastShower/interface/ShowerShapeHexagon.h"
+#endif
 
 
 

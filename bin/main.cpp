@@ -1,8 +1,15 @@
 #include <iostream>
 #include <string>
-#include <Python.h>
+
+#ifdef STANDALONE
 #include "Generator.h"
 #include "Parameters.h"
+#else
+#include "HGCalSimulation/FastShower/interface/Generator.h"
+#include "HGCalSimulation/FastShower/interface/Parameters.h"
+#endif
+
+
 
 
 int main(int argc, char** argv) {

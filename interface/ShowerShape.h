@@ -1,9 +1,13 @@
 
-#ifndef ShowerShape_h__
-#define ShowerShape_h__
+#ifndef __HGCalSimulation_FastShower_ShowerShape_h__
+#define __HGCalSimulation_FastShower_ShowerShape_h__
 
 #include <map>
+#ifdef STANDALONE
 #include "Cell.h"
+#else
+#include "HGCalSimulation/FastShower/interface/Cell.h"
+#endif
 
 class ShowerShape {
 

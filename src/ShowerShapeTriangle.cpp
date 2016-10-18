@@ -1,5 +1,11 @@
-#include "ShowerShapeTriangle.h"
+
 #include "TMath.h"
+
+#ifdef STANDALONE
+#include "ShowerShapeTriangle.h"
+#else
+#include "HGCalSimulation/FastShower/interface/ShowerShapeTriangle.h"
+#endif
 
 
 

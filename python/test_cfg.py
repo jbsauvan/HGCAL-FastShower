@@ -6,5 +6,5 @@ from shower_cfg import *
 from generation_cfg import *
 from display_cfg import *
 
-events = 10
+events = 1
 debug = False

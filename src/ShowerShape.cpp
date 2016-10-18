@@ -1,6 +1,12 @@
-#include "ShowerShape.h"
-#include "TMath.h"
+
 #include <iostream>
+#include "TMath.h"
+
+#ifdef STANDALONE
+#include "ShowerShape.h"
+#else
+#include "HGCalSimulation/FastShower/interface/ShowerShape.h"
+#endif
 
 
 ShowerShape::ShowerShape(std::map<Cell*,double,CellComp>* enrjMap):
