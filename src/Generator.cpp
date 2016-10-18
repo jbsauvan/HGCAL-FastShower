@@ -344,12 +344,12 @@ void Generator::simulate() {
 
 
 void Generator::display(std::map<Cell*,TH1F*,CellComp>& hCellEnergyEvtMap, int ievt) {
-  double xdisplayoffset=0.;
-  double ydisplayoffset=0.;
-  if (parameters_.geometry().type==Parameters::Geometry::Type::External) {
-    xdisplayoffset=parameters_.display().offset_x;
-    ydisplayoffset=parameters_.display().offset_y;
-  }
+  //double xdisplayoffset=0.;
+  //double ydisplayoffset=0.;
+  //if (parameters_.geometry().type==Parameters::Geometry::Type::External) {
+    //xdisplayoffset=parameters_.display().offset_x;
+    //ydisplayoffset=parameters_.display().offset_y;
+  //}
 
   std::string title1, title2, title3, title4;
   char str[20];

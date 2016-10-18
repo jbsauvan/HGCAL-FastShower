@@ -4,13 +4,14 @@
 #include <iostream>
 #include <algorithm>
 
-#include "json/json.h"
 #include "TPolyLine.h"
 
 #ifdef STANDALONE
 #include "Geometry.h"
+#include "json/json.h"
 #else
 #include "HGCalSimulation/FastShower/interface/Geometry.h"
+#include "HGCalSimulation/FastShower/interface/json/json.h"
 #endif
 
 std::string fixedLength(int value, int digits = 5, std::string type="FH") {

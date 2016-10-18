@@ -1,7 +1,8 @@
-<use   name="root"/>
-<use   name="boost"/>
-<use   name="boost_python"/>
+<use name="root"/>
+<use name="rootgraphics"/>
+<use name="boost"/>
+<use name="boost_python"/>
 <export>
-  <lib   name="1"/>
+  <lib name="1"/>
 </export>
 <flags ADD_SUBDIR="1"/>

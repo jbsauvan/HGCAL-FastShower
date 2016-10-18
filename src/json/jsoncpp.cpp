@@ -73,7 +73,11 @@ license you like.
 
 
 
+#ifdef STANDALONE
 #include "json/json.h"
+#else
+#include "HGCalSimulation/FastShower/interface/json/json.h"
+#endif
 
 #ifndef JSON_IS_AMALGAMATION
 #error "Compile with -I PATH_TO_JSON_DIRECTORY"
