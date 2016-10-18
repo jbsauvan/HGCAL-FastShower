@@ -33,14 +33,14 @@ ifeq "$(CCVERSIONGTEQ48)" "0"
   $(error Requires g++ version >= 4.8)
 endif
 
-all : shower_simulation.exe 
+all : bin/shower_simulation.exe 
 
 lib/%.o : %.cpp
 	@echo "> compiling $*"
 	@mkdir -p lib/
 	@$(CC) -c $< $(UCFLAGS) $(RUCFLAGS) -o $@
 
-shower_simulation.exe : $(OBJCPP)
+bin/shower_simulation.exe : $(OBJCPP)
 	@echo "> linking"
 	$(CC) $^ $(LIBS) -o $@
 
@@ -51,4 +51,4 @@ clean:
         
 cleanall: clean
 	@echo "> Cleaning executable"
-	@rm -f shower_simulation.exe
+	@rm -f bin/shower_simulation.exe
