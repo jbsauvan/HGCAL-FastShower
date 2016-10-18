@@ -1,9 +1,7 @@
 #include "ShowerShapeHexagon.h"
-#include "Constants.h"
 #include "TMath.h"
 
 
-using namespace Constants;
 
 double ShowerShapeHexagon::firstNeighboors(int i, int j) {
 

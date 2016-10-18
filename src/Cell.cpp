@@ -1,9 +1,7 @@
 #include "Cell.h"
-#include "Constants.h"
 #include "TMath.h"
 
 
-using namespace Constants;
 
 Cell::Cell(const Cell& cell) {
   orientation_ = cell.getOrientation();

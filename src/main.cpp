@@ -41,7 +41,21 @@ int main(int argc, char** argv) {
 
   if(params.general().debug) params.print();
 
-  Generator generator(params);
-  generator.simulate();
+  try
+  {
+    Generator generator(params);
+    generator.simulate();
+  }
+  catch(const std::string& excep)
+  {
+    std::cout<<"An error occured while initializing the generator:\n";
+    std::cout<<excep<<"\n";
+    return 3;
+  }
+  catch(...)
+  {
+    std::cout<<"An error occured while initializing the generator:\n";
+    return 3;
+  }
   return 0;
 }

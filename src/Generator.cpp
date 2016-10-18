@@ -4,7 +4,6 @@
 #include "ShowerShapeHexagon.h"
 #include "ShowerShapeTriangle.h"
 #include "TRandom3.h"
-//#include "Constants.h"
 #include "TStopwatch.h"
 #include "TCanvas.h"
 #include "TMath.h"
@@ -12,10 +11,10 @@
 #include "TText.h"
 #include "TPaveText.h"
 
-//using namespace Constants;
 
 Generator::
 Generator(const Parameters& params):
+  geometry_(params.geometry()),
   parameters_(params)
 {
 }
@@ -53,16 +52,11 @@ void Generator::simulate() {
   t.Start();   
 
   if (parameters_.geometry().type!=Parameters::Geometry::Type::External) {
-    geometry_.constructFromParameters(
-        parameters_.geometry().cell_side,
-        parameters_.geometry().cells_nx,
-        parameters_.geometry().cells_ny,
-        parameters_.geometry().layer,
-        parameters_.geometry().type); // constructor for layer klayer
+    geometry_.constructFromParameters(parameters_.general().debug); // constructor for layer klayer
     std::cout << " " << std::endl;
   } else {
     // construct geometry from JSON
-    geometry_.constructFromJson(parameters_.geometry().file);
+    geometry_.constructFromJson(parameters_.general().debug);
   }
   geometry_.print();
 
@@ -74,14 +68,10 @@ void Generator::simulate() {
   TCanvas *c1 = new TCanvas(title.c_str(),title.c_str(),40,40,700,700);
   double scale=1.;
   //double textsize=0.02;
-  geometry_.draw(scale);
+  geometry_.draw(parameters_.display(), scale);
 
   // shower parametrization
-  ShowerParametrization aShowerParametrization(
-      parameters_.shower().radiation_length,
-      parameters_.shower().moliere_radius,
-      parameters_.shower().critical_energy,
-      parameters_.shower().alpha);
+  ShowerParametrization aShowerParametrization(parameters_);
   
 //   // layer weight
 //   double layer_weight=1.;
@@ -387,7 +377,7 @@ void Generator::display(std::map<Cell*,TH1F*,CellComp>& hCellEnergyEvtMap, int i
   if (parameters_.geometry().type==Parameters::Geometry::Type::Triangles) scale=1./(parameters_.display().size*geometry_.aover2());
   if (parameters_.geometry().type==Parameters::Geometry::Type::External) scale=1./(parameters_.display().size*0.22727*sqrt(3.)); //hard coded a size for json geometry, to be improved
   //double textsize=0.02;
-  geometry_.draw(scale);
+  geometry_.draw(parameters_.display(), scale);
 
   std::map<Cell*,TH1F*,CellComp>::iterator ic;
   for (ic=hCellEnergyEvtMap.begin(); ic!=hCellEnergyEvtMap.end(); ic++) {

@@ -1,9 +1,7 @@
 #include "ShowerShapeTriangle.h"
-#include "Constants.h"
 #include "TMath.h"
 
 
-using namespace Constants;
 
 double ShowerShapeTriangle::firstNeighboors(int i, int j) {
 

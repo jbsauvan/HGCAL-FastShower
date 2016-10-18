@@ -1,9 +1,7 @@
 #include "ShowerShape.h"
-#include "Constants.h"
 #include "TMath.h"
 #include <iostream>
 
-using namespace Constants;
 
 ShowerShape::ShowerShape(std::map<Cell*,double,CellComp>* enrjMap):
  enrjMap_(enrjMap) {

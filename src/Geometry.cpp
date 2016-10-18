@@ -3,12 +3,10 @@
 #include <fstream>
 #include <iostream>
 #include "Geometry.h"
-#include "Constants.h"
 #include "json/json.h"
 #include "TPolyLine.h"
 #include <algorithm>
 
-using namespace Constants;
 
 std::string fixedLength(int value, int digits = 5, std::string type="FH") {
 
@@ -41,15 +39,16 @@ std::string fixedLength(int value, int digits = 5, std::string type="FH") {
 }
 
 
-void Geometry::constructFromJson(const std::string& filename) {
+void Geometry::constructFromJson(bool debug) {
 
   itype_ = Parameters::Geometry::Type::External;
+  const std::string& filename = parameters_.file;
 
   // first set klayer and zlayer according to user parameters
-  setLayer(klayer);
+  setLayer(parameters_.layer);
   double zlayer;
-  if (klayer == -1) zlayer = 0.;  // entry face required
-  else zlayer = zlayers[klayer]; // else offset from the layer z position
+  if (klayer_ == -1) zlayer = 0.;  // entry face required
+  else zlayer = parameters_.layers_z[klayer_]; // else offset from the layer z position
   // to force being at the center for any requested layer
   //zlayer = 0.; 
   setZlayer(zlayer);
@@ -185,8 +184,13 @@ void Geometry::constructFromJson(const std::string& filename) {
 
 }
 
-void Geometry::constructFromParameters(double a, int nrows,int ncols,int klayer, Parameters::Geometry::Type itype) {
+void Geometry::constructFromParameters(bool debug) {
 
+  double a(parameters_.cell_side);
+  int nrows(parameters_.cells_nx);
+  int ncols(parameters_.cells_ny);
+  int klayer(parameters_.layer);
+  Parameters::Geometry::Type itype(parameters_.type);
 
   // a tesselation of the plane with polygons
   std::cout << " " << std::endl;
@@ -227,7 +231,7 @@ void Geometry::constructFromParameters(double a, int nrows,int ncols,int klayer,
 
   double zlayer;
   if (klayer == -1) zlayer = 0.;  // entry face required
-  else zlayer = zlayers[klayer]; // else offset from the layer z position
+  else zlayer = parameters_.layers_z[klayer]; // else offset from the layer z position
   // to force being at the center for any requested layer
   //zlayer = 0.; 
   setZlayer(zlayer);
@@ -236,8 +240,8 @@ void Geometry::constructFromParameters(double a, int nrows,int ncols,int klayer,
   // J index runs along the y' axis is rotated by 60deg wrt x axis  
 
   // define an offset along the x-axis to fully fill the display pad with cells
-  double xoffset = ioffsetparam*asqrt3_;
-  if (itype==Parameters::Geometry::Type::Triangles) xoffset = ioffsetparam*aover2_;
+  double xoffset = parameters_.offset*asqrt3_;
+  if (itype==Parameters::Geometry::Type::Triangles) xoffset = parameters_.offset*aover2_;
 
  for (int i=0; i<nrows_;i++) {
   
@@ -313,7 +317,7 @@ void Geometry::setLayer(int klayer) {
 void Geometry::print() {
 
   std::cout << "Printing the geometry : " << std::endl;
-  if (klayer != -1) std::cout << "the layer plane is " << klayer_ << " at z position " << zlayers[klayer_] << std::endl;
+  if (klayer_ != -1) std::cout << "the layer plane is " << klayer_ << " at z position " << parameters_.layers_z[klayer_] << std::endl;
   else std::cout << "the layer plane is " << klayer_ << " at z position 0." << std::endl;
   std::vector<Cell *>::iterator ic;
   for (ic=cells_.begin();ic!=cells_.end();ic++) { 
@@ -326,7 +330,7 @@ void Geometry::print() {
 
 }
 
-void Geometry::draw(double scale) {
+void Geometry::draw(const Parameters::Display& params, double scale) {
 
   double summitx[7]; double summity[7];
 
@@ -335,8 +339,8 @@ void Geometry::draw(double scale) {
   double xdisplayoffset=0.;
   double ydisplayoffset=0.;
   if (itype_==Parameters::Geometry::Type::External) {
-    xdisplayoffset=xdisplayoffsetfull;
-    ydisplayoffset=ydisplayoffsetfull;
+    xdisplayoffset=params.offset_x;
+    ydisplayoffset=params.offset_y;
   }
 
   for (std::vector<Cell *>::iterator ic=cells_.begin();ic!=cells_.end();ic++) { 
@@ -361,11 +365,11 @@ TVectorD Geometry::getPosition(int i, int j) {
   // this is error prone (code duplication), do we really gain time?
   if (getType()!=Parameters::Geometry::Type::External) { 
     if (getType()==Parameters::Geometry::Type::Hexagons) { // hexagons
-      position(0) = ioffsetparam*asqrt3_+i*asqrt3_+j*asqrt3over2_;
+      position(0) = parameters_.offset*asqrt3_+i*asqrt3_+j*asqrt3over2_;
       double yprime = j*asqrt3_;
       position(1) = yprime*asqrt3over2_/a_;
     } else { // triangles
-      position(0) = ioffsetparam*asqrt3_+i*aover2_+j*aover2_;
+      position(0) = parameters_.offset*asqrt3_+i*aover2_+j*aover2_;
       position(1) = j*asqrt3over2_;    
       if (i%2 == 1) position(1) = position(1) + asqrt3_/6.; // cell center is shifted in y for downward triangles
     }

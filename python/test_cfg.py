@@ -7,4 +7,4 @@ from generation_cfg import *
 from display_cfg import *
 
 events = 10
-debug = True
+debug = False

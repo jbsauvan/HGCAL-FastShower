@@ -20,13 +20,14 @@ class Geometry {
 
   public:
 
-    Geometry() {}
+    Geometry(const Parameters::Geometry& params):
+      parameters_(params){}
     ~Geometry() {}
 
     // construct parametrised geometry, default grid 11x11, ie +-5 around the central cell
-    void constructFromParameters(double a, int nrows=11,int ncols=11,int klayer=-1, Parameters::Geometry::Type itype=Parameters::Geometry::Type::Hexagons); 
+    void constructFromParameters(bool); 
     // construct geometry from json file
-    void constructFromJson(const std::string&);
+    void constructFromJson(bool);
     //std::vector<Cell *> getCells() {return cells_;}
 
     Cell * closestCell(double x, double y); // the cell that contains the point
@@ -56,7 +57,7 @@ class Geometry {
     double aover2() const {return aover2_;}
     double asqrt3over2() const {return asqrt3over2_;}
 
-    void draw(double scale=0.1);
+    void draw(const Parameters::Display& params, double scale=0.1);
     void print();
 
   private:
@@ -78,6 +79,7 @@ class Geometry {
     double asqrt3_;
     double aover2_;
     double asqrt3over2_;
+    const Parameters::Geometry& parameters_;
 
 };
 
