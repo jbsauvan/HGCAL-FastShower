@@ -13,7 +13,7 @@ geometry_layers_z = [.765,1.515,2.745,3.495,4.725,5.475,6.705,7.455,8.685,9.435,
                        10.745,11.615,12.925,13.795,15.105,15.975,17.285,18.155,19.465,20.335,
                        21.785,22.855,24.305,25.375,26.825,27.895,29.345,30.415]
 # multiply cell side by sqrt(6) for triangles to get equal area
-geometry_cell_side = 1.590
+geometry_cell_side = 1.190
 # number of cells along x
 geometry_cells_nx = 31
 # number of cells along y

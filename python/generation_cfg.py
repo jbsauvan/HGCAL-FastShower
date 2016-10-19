@@ -3,7 +3,7 @@ import math as m
 from geometry_cfg import geometry_cell_side as a
 
 generation_energy = 100.
-generation_fluctuation = False
+generation_fluctuation = True
 
 # nbr hits per GeV, used only if fluctuation is false
 generation_number_of_hits_per_gev = 1000
@@ -15,7 +15,7 @@ generation_sampling = 0.0055
 # electronic noise
 generation_noise = True
 # noise in mips
-generation_noise_sigma = 1.
+generation_noise_sigma = 0.3
 
 # Incident position and angle
 # below we shoot at center of the (3,4) cell in the parameterised triangular geometry
