@@ -18,14 +18,14 @@ class ShowerParametrization {
   public:
 
     ShowerParametrization() {}
-    ShowerParametrization(const Parameters& params):
-     radiationLength_(params.shower().radiation_length),
-     moliereRadius_(params.shower().moliere_radius),
-     criticalEnergy_(params.shower().critical_energy),
-     alpha_(params.shower().alpha) 
+    ShowerParametrization(const Parameters::Shower& params):
+     radiationLength_(params.radiation_length),
+     moliereRadius_(params.moliere_radius),
+     criticalEnergy_(params.critical_energy),
+     alpha_(params.alpha) 
     {
 
-      const auto& longitudinal_params = params.shower().longitudinal_parameters;
+      const auto& longitudinal_params = params.longitudinal_parameters;
       // FIXME: throw excetion if parameter doesn't exist. Should make sure that it is properly caught
       meant0_ = longitudinal_params.at("meant0");
       meant1_ = longitudinal_params.at("meant1");
@@ -39,8 +39,8 @@ class ShowerParametrization {
       corrlnalphalnt1_ = longitudinal_params.at("corrlnalphalnt1");  
 
       // FIXME: can compute the normalized profile in python
-      if(params.shower().layers_energy.size()!=28) throw std::string("The size of shower_layers_energy should be 28");
-      std::copy_n(params.shower().layers_energy.begin(), layerProfile_.size(), layerProfile_.begin());
+      if(params.layers_energy.size()!=28) throw std::string("The size of shower_layers_energy should be 28");
+      std::copy_n(params.layers_energy.begin(), layerProfile_.size(), layerProfile_.begin());
       double total_weight=0.;
       for (unsigned i=0;i<layerProfile_.size();i++) total_weight = total_weight + layerProfile_[i];
       for (unsigned i=0;i<layerProfile_.size();i++) layerProfile_[i] = layerProfile_[i]/total_weight;
@@ -48,7 +48,7 @@ class ShowerParametrization {
       // exponential parameter set from TP studies, 90% containment in 2.3cm at layer 15
       //r0layer15_ = 2.3/std::log(10.);  
       r0layer15_ = moliereRadius_/std::log(10.);  
-      const auto& transverse_params = params.shower().transverse_parameters;
+      const auto& transverse_params = params.transverse_parameters;
       // FIXME: throw excetion if parameter doesn't exist. Should make sure that it is properly caught
       a0_ = transverse_params.at("a0"); 
       a1_ = transverse_params.at("a1");

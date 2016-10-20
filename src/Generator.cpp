@@ -1,6 +1,5 @@
 #include <iostream>
 
-#include "TRandom3.h"
 #include "TStopwatch.h"
 #include "TCanvas.h"
 #include "TMath.h"
@@ -10,7 +9,6 @@
 
 #ifdef STANDALONE
 #include "Generator.h"
-#include "ShowerParametrization.h"
 #include "ShowerShapeHexagon.h"
 #include "ShowerShapeTriangle.h"
 #else
@@ -24,6 +22,7 @@
 Generator::
 Generator(const Parameters& params):
   geometry_(params.geometry()),
+  shower_(params.shower()),
   parameters_(params)
 {
 }
@@ -32,18 +31,10 @@ void Generator::simulate() {
   unsigned nevents = parameters_.general().events;
   bool debug = parameters_.general().debug;
 
-  // output file
-  std::string fileName = "hgcal_shower_simulation.root";
-  std::string histoFileName = "hist_"+fileName;
-
   // some initializations
   double energygen=0.;
   double energygenincells=0.;
   double energyrec=0.;
-
-  // randome engine
-  //TRandom *gun = new TRandom(); 
-  TRandom *gun = new TRandom3(); 
 
   // incident direction
   // coordinate of origin of simulated geometry/module in CMS frame is given by etainc,phiinc and z=320.;
@@ -52,45 +43,30 @@ void Generator::simulate() {
   double thetainc = 2.*std::atan(std::exp(-parameters_.generation().incident_eta));
   double z0 = 320.; // z ccordinate of first plane
   double rt = z0*tan(thetainc); 
-  TVectorD dir(3);  
-  dir(0) = rt*cos(phiinc);
-  dir(1) = rt*sin(phiinc);
-  dir(2) = z0;
+  TVectorD direction(3);  
+  direction(0) = rt*cos(phiinc);
+  direction(1) = rt*sin(phiinc);
+  direction(2) = z0;
 
   TStopwatch t;
   t.Start();   
 
   if (parameters_.geometry().type!=Parameters::Geometry::Type::External) {
-    geometry_.constructFromParameters(parameters_.general().debug); // constructor for layer klayer
+    geometry_.constructFromParameters(parameters_.general().debug); 
     std::cout << " " << std::endl;
   } else {
-    // construct geometry from JSON
     geometry_.constructFromJson(parameters_.general().debug);
   }
   geometry_.print();
 
   // draw the geometry
   std::string title;
-  //char str[20];
   title = "Layer ";
   title = title + std::to_string(parameters_.geometry().layer);
-  TCanvas *c1 = new TCanvas(title.c_str(),title.c_str(),40,40,700,700);
+  TCanvas* c1 = new TCanvas(title.c_str(),title.c_str(),40,40,700,700);
   double scale=1.;
   //double textsize=0.02;
   geometry_.draw(parameters_.display(), scale);
-
-  // shower parametrization
-  ShowerParametrization aShowerParametrization(parameters_);
-  
-//   // layer weight
-//   double layer_weight=1.;
-//   if (klayer!=-1) {
-//     double total_weight = 0.;
-//     for (int i=0;i<28;i++) total_weight = total_weight + elayers[i];
-//     layer_weight = elayers[klayer]/total_weight;
-//   }
-  // moved inside the event loop
-  //if (klayer!=-1) layer_weight = aShowerParametrization.getLayerProfile()[klayer];
 
   // energy map
   std::map<Cell*,double,CellComp> enrjMap;
@@ -179,7 +155,7 @@ void Generator::simulate() {
     if (parameters_.generation().noise) {
       double calibratednoise = parameters_.generation().noise_sigma*parameters_.generation().mip_energy/parameters_.generation().sampling;
       for (ic=cells.begin();ic!=cells.end();ic++) {
-        double enoise = gun->Gaus(0.,calibratednoise);
+        double enoise = gun_.Gaus(0.,calibratednoise);
 	enrjMap[*ic] += enoise;
 	energyrec += enoise;
 	if (debug) std::cout << "adding " << enoise << " GeV noise in cell " << std::endl;      
@@ -203,7 +179,7 @@ void Generator::simulate() {
       denrj = 1./parameters_.generation().number_of_hits_per_gev;
     } else {
       denrj = aShowerParametrization.spotEnergy();
-      nhits = gun->Poisson(parameters_.generation().energy*layer_weight/denrj); 
+      nhits = gun_.Poisson(parameters_.generation().energy*layer_weight/denrj); 
     }  
 
     if (debug) 
@@ -217,16 +193,16 @@ void Generator::simulate() {
 
     for (int i=0; i<nhits; i++) {
 
-      double r = gun->Exp(r0); // exponential exp(-r/r0)
-      double phi = gun->Rndm()*TMath::TwoPi();
+      double r = gun_.Exp(r0); // exponential exp(-r/r0)
+      double phi = gun_.Rndm()*TMath::TwoPi();
       double x = r*cos(phi) + xinccor;
       double y = r*sin(phi) + parameters_.generation().incident_y;
 
       // add here translation for the requested layer
       double z = geometry_.getZlayer();
       if (z!=0.) {
-        x = x + z*(dir)(0)/(dir)(2);
-        y = y + z*(dir)(1)/(dir)(2);
+        x = x + z*(direction)(0)/(direction)(2);
+        y = y + z*(direction)(1)/(direction)(2);
       }
 
       TVectorD pos(2);
@@ -318,7 +294,7 @@ void Generator::simulate() {
   std::cout << std::endl;
 
   // Exporting histograms to file
-  TFile hFile(histoFileName.c_str(),"RECREATE");
+  TFile hFile(parameters_.general().output_file.c_str(),"RECREATE");
 
   hEnergyGen.Write();
   hTransverseProfile.Write();

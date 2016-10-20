@@ -3,15 +3,18 @@
 
 #include <map>
 #include "TH1F.h"
+#include "TRandom3.h"
 
 #ifdef STANDALONE
 #include "Cell.h"
 #include "Geometry.h"
 #include "Parameters.h"
+#include "ShowerParametrization.h"
 #else
 #include "HGCalSimulation/FastShower/interface/Cell.h"
 #include "HGCalSimulation/FastShower/interface/Geometry.h"
 #include "HGCalSimulation/FastShower/interface/Parameters.h"
+#include "HGCalSimulation/FastShower/interface/ShowerParametrization.h"
 #endif
 
 
@@ -27,7 +30,9 @@ class Generator {
 
 
   private:
+    TRandom3 gun_;;
     Geometry geometry_;
+    ShowerParametrization shower_;
     const Parameters& parameters_;
     
 

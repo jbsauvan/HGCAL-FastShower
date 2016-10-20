@@ -15,6 +15,7 @@ class Parameters
       General();
       unsigned events;
       bool debug;
+      std::string output_file;
     };
     struct Geometry
     {

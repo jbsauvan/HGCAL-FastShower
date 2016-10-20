@@ -50,22 +50,12 @@ Cell& Cell::operator=(const Cell& cell) {
 
 }
 
-Cell::Cell(TVectorD *position, std::vector<TVectorD *> *vertices, double orientation, int i_index, int j_index) {
-  position_ = position;
-  vertices_ = vertices;
-  orientation_ = orientation;
-  i_index_ = i_index;
-  j_index_ = j_index;
-
+Cell::Cell(TVectorD&& position, std::vector<TVectorD>&& vertices, double orientation, int i_index, int j_index):
+  position_(std::move(position)),
+  vertices_(std::move(vertices)),
+  orientation_(orientation),
+  i_index_(i_index),
+  j_index_(j_index)
+{
 }
 
-Cell::~Cell() {
-  if (position_) delete position_;
-  if (vertices_) {
-    for (unsigned int i=0;i<vertices_->size();i++) {
-      delete getVertices()[i];
-    }
-    delete vertices_;
-  }
-
-}
