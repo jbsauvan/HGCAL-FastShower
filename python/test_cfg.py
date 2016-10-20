@@ -15,3 +15,4 @@ except ImportError:
 
 events = 1
 debug = False
+output_file = 'test.root'

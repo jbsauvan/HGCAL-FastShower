@@ -26,11 +26,11 @@ class Generator {
 
     void simulate();
     //void display(Geometry& geometry, std::map<Cell,TH1F*,CellComp>& hCellEnergyEvtMap, int ievt=0);
-    void display(std::map<Cell*,TH1F*,CellComp>& hCellEnergyEvtMap, int ievt=0);
+    void display(const std::unordered_map<uint32_t,TH1F>& hCellEnergyEvtMap, int ievt=0);
 
 
   private:
-    TRandom3 gun_;;
+    TRandom3 gun_;
     Geometry geometry_;
     ShowerParametrization shower_;
     const Parameters& parameters_;
