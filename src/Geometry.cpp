@@ -266,12 +266,12 @@ void Geometry::constructFromParameters(bool debug) {
   // vertices coordinates wrt cell center
   const int nverticeshexagon=6; // hexagons
   const int nverticestriangle=3; // hexagons  
-  const std::array<double, nverticeshexagon> hexagonoffsetx = {asqrt3over2_,asqrt3over2_,0.,-asqrt3over2_,-asqrt3over2_,0};
-  const std::array<double,nverticeshexagon> hexagonoffsety = {-aover2_,aover2_,a_,aover2_,-aover2_,-a_};
-  const std::array<double,nverticestriangle> uptriangleoffsetx = {aover2_,0.,-aover2_};
-  const std::array<double, nverticestriangle> uptriangleoffsety = {-asqrt3over2_/3.,asqrt3_/3.,-asqrt3over2_/3.};
-  const std::array<double, nverticestriangle> downtriangleoffsetx = {aover2_,-aover2_,0.};
-  const std::array<double,nverticestriangle> downtriangleoffsety = {asqrt3over2_/3.,asqrt3over2_/3.,-asqrt3_/3.};
+  const std::array<double, nverticeshexagon> hexagonoffsetx = {{asqrt3over2_,asqrt3over2_,0.,-asqrt3over2_,-asqrt3over2_,0}};
+  const std::array<double,nverticeshexagon> hexagonoffsety = {{-aover2_,aover2_,a_,aover2_,-aover2_,-a_}};
+  const std::array<double,nverticestriangle> uptriangleoffsetx = {{aover2_,0.,-aover2_}};
+  const std::array<double, nverticestriangle> uptriangleoffsety = {{-asqrt3over2_/3.,asqrt3_/3.,-asqrt3over2_/3.}};
+  const std::array<double, nverticestriangle> downtriangleoffsetx = {{aover2_,-aover2_,0.}};
+  const std::array<double,nverticestriangle> downtriangleoffsety = {{asqrt3over2_/3.,asqrt3over2_/3.,-asqrt3_/3.}};
   int nvertices=nverticeshexagon;
   if (itype==Parameters::Geometry::Type::Triangles) nvertices=nverticestriangle;
   cells_.clear();
@@ -316,6 +316,8 @@ void Geometry::constructFromParameters(bool debug) {
           if (i%2 == 1) y = y + asqrt3_/6.; // cell center is shifted in y for downward triangles
           break;
         }
+        default:
+          break;
       };
 
       TVectorD position(2);
@@ -360,6 +362,8 @@ void Geometry::constructFromParameters(bool debug) {
             }
             break;
           }
+          default:
+            break;
         };
         if (debug) {
           std::cout << "  vertex " << i << " " << 
