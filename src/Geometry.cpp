@@ -428,11 +428,13 @@ void Geometry::draw(const Parameters::Display& params, double scale) {
     unsigned nvertices = cell.getVertices().size();
     summitx[nvertices]=cell.getVertices()[0](0)*scale+xdisplayoffset;
     summity[nvertices]=cell.getVertices()[0](1)*scale+ydisplayoffset;
-    TPolyLine polygon(nvertices+1,summitx.data(),summity.data());
-    polygon.SetFillColor(38);
-    polygon.SetLineColor(4);
-    polygon.SetLineWidth(1);
-    polygon.Draw();
+    // Calling Draw makes the current pad take the ownership of the object
+    // So raw pointers are used, and the objects are deleted when the pad is deleted
+    TPolyLine* polygon = new TPolyLine(nvertices+1,summitx.data(),summity.data());
+    polygon->SetFillColor(38);
+    polygon->SetLineColor(4);
+    polygon->SetLineWidth(1);
+    polygon->Draw();
   } 
 
 }

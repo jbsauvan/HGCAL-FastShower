@@ -129,6 +129,8 @@ void Generator::simulate() {
   }
 
 
+  TFile hFile(parameters_.general().output_file.c_str(),"RECREATE");
+  std::vector<std::unique_ptr<TCanvas>> canvas;
   // start main loop on all events
   for (unsigned iev=1; iev<=nevents; iev++) {
 
@@ -276,7 +278,7 @@ void Generator::simulate() {
         hCellEnergyEvtMap.at(id_energy.first).Reset();
         hCellEnergyEvtMap.at(id_energy.first).Fill(id_energy.second);
       }
-      display(hCellEnergyEvtMap,iev);    
+      canvas.emplace_back(display(hCellEnergyEvtMap,iev));    
 
     }
 
@@ -287,8 +289,6 @@ void Generator::simulate() {
   std::cout << std::endl;
 
   // Exporting histograms to file
-  TFile hFile(parameters_.general().output_file.c_str(),"RECREATE");
-
   hEnergyGen.Write();
   hTransverseProfile.Write();
   hPhiProfile.Write();
@@ -300,25 +300,31 @@ void Generator::simulate() {
     id_hist.second.Write();
   }  
 
-  hFile.Write();
-  hFile.Close();
 
   t.Stop();
   t.Print();
 
-  display(hCellEnergyMap);    
+  canvas.emplace_back(display(hCellEnergyMap));    
+
+  // Writing energy map plots
+  for(const auto& canvas_ptr : canvas) {
+    canvas_ptr->Write();
+  }
+
+  hFile.Write();
+  hFile.Close();
 
 }
 
 
 
-void Generator::display(const std::unordered_map<uint32_t,TH1F>& hCellEnergyEvtMap, int ievt) {
-  //double xdisplayoffset=0.;
-  //double ydisplayoffset=0.;
-  //if (parameters_.geometry().type==Parameters::Geometry::Type::External) {
-    //xdisplayoffset=parameters_.display().offset_x;
-    //ydisplayoffset=parameters_.display().offset_y;
-  //}
+std::unique_ptr<TCanvas> Generator::display(const std::unordered_map<uint32_t,TH1F>& hCellEnergyEvtMap, int ievt) {
+  double xdisplayoffset=0.;
+  double ydisplayoffset=0.;
+  if (parameters_.geometry().type==Parameters::Geometry::Type::External) {
+    xdisplayoffset=parameters_.display().offset_x;
+    ydisplayoffset=parameters_.display().offset_y;
+  }
 
   // FIXME: build titles without using char[]
   std::string title1, title2, title3, title4;
@@ -351,12 +357,13 @@ void Generator::display(const std::unordered_map<uint32_t,TH1F>& hCellEnergyEvtM
   title = title + ", ";
   title = title + title4;
 
-  TCanvas c1(title.c_str(),title.c_str(),40,40,700,700);
+  std::unique_ptr<TCanvas> c1(new TCanvas(title.c_str(),title.c_str(),40,40,700,700));
   double scale=1./(parameters_.display().size*geometry_.asqrt3());
   if (parameters_.geometry().type==Parameters::Geometry::Type::Triangles) scale=1./(parameters_.display().size*geometry_.aover2());
   if (parameters_.geometry().type==Parameters::Geometry::Type::External) scale=1./(parameters_.display().size*0.22727*sqrt(3.)); // FIXME: hard coded a size for json geometry, to be improved
   //double textsize=0.02;
   geometry_.draw(parameters_.display(), scale);
+
 
   for (const auto& id_hist : hCellEnergyEvtMap) {
     const auto& cell = geometry_.getCells().at(id_hist.first);
@@ -367,41 +374,46 @@ void Generator::display(const std::unordered_map<uint32_t,TH1F>& hCellEnergyEvtM
     sprintf(str,"%4.1f",id_hist.second.GetMean());
     //if (enrj<0.01) continue;
     //int ires = sprintf(str,"%5.2f",(ic->second)->GetMean());
-    TText t(cell.getPosition()(0)*scale+parameters_.display().offset_x,
-        cell.getPosition()(1)*scale+parameters_.display().offset_y,
+    // Calling Draw makes the current pad take the ownership of the object
+    // So raw pointers are used, and the objects are deleted when the pad is deleted (here c1)
+    TText* t = new TText(cell.getPosition()(0)*scale+xdisplayoffset,
+        cell.getPosition()(1)*scale+ydisplayoffset,
         str);
-    t.SetTextAlign(22);
-    t.SetTextColor(kBlack);
-    if (enrj>=1.) t.SetTextColor(kRed);
-    t.SetTextFont(43);
-    t.SetTextSize(20*11/parameters_.display().size);
-    t.Draw();
-    TPaveText leg1(.05,.91,.35,.97);
-    leg1.AddText(title1.c_str());
-    leg1.SetFillColor(kWhite);
-    leg1.SetTextSize(0.02);
-    leg1.Draw();
-    TPaveText leg2(.045,.85,.18,.88);
-    leg2.AddText(title2.c_str());
-    leg2.SetFillColor(kWhite);
-    leg2.SetTextSize(0.02);
-    leg2.SetTextColor(kBlue);
-    leg2.SetBorderSize(0.0);
-    leg2.Draw();
-    TPaveText leg3(.06,.79,.25,.84);
-    leg3.AddText(title3.c_str());
-    leg3.SetFillColor(kWhite);
-    leg3.SetTextSize(0.02);
-    leg3.SetTextColor(kBlue);
-    leg3.SetBorderSize(0.0);
-    leg3.Draw();
-    TPaveText leg4(.05,.76,.13,.79);
-    leg4.AddText(title4.c_str());
-    leg4.SetFillColor(kWhite);
-    leg4.SetTextSize(0.02);
-    leg4.SetTextColor(kBlue);
-    leg4.SetBorderSize(0.0);
-    leg4.Draw();
+    t->SetTextAlign(22);
+    t->SetTextColor(kBlack);
+    if (enrj>=1.) t->SetTextColor(kRed);
+    t->SetTextFont(43);
+    t->SetTextSize(20*11/parameters_.display().size);
+    //t->SetTextSize(0.02);
+    t->Draw();
   } 
+  TPaveText* leg1 = new TPaveText(.05,.91,.35,.97);
+  leg1->AddText(title1.c_str());
+  leg1->SetFillColor(kWhite);
+  leg1->SetTextSize(0.02);
+  leg1->Draw();
+  TPaveText* leg2 = new TPaveText(.045,.85,.18,.88);
+  leg2->AddText(title2.c_str());
+  leg2->SetFillColor(kWhite);
+  leg2->SetTextSize(0.02);
+  leg2->SetTextColor(kBlue);
+  leg2->SetBorderSize(0.0);
+  leg2->Draw();
+  TPaveText* leg3 = new TPaveText(.06,.79,.25,.84);
+  leg3->AddText(title3.c_str());
+  leg3->SetFillColor(kWhite);
+  leg3->SetTextSize(0.02);
+  leg3->SetTextColor(kBlue);
+  leg3->SetBorderSize(0.0);
+  leg3->Draw();
+  TPaveText* leg4 = new TPaveText(.05,.76,.13,.79);
+  leg4->AddText(title4.c_str());
+  leg4->SetFillColor(kWhite);
+  leg4->SetTextSize(0.02);
+  leg4->SetTextColor(kBlue);
+  leg4->SetBorderSize(0.0);
+  leg4->Draw();
+
+  return c1;
 
 }
