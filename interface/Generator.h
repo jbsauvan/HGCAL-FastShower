@@ -4,6 +4,7 @@
 #include <map>
 #include "TH1F.h"
 #include "TRandom3.h"
+#include "TCanvas.h"
 
 #ifdef STANDALONE
 #include "Cell.h"
