@@ -14,8 +14,8 @@ class ShowerShapeTriangle: public ShowerShape {
   
   public:
   
-  ShowerShapeTriangle() {} // default constructor
-  ShowerShapeTriangle(std::map<Cell*,double,CellComp>* enrjMap): ShowerShape(enrjMap) {}
+  ShowerShapeTriangle(const std::unordered_map<uint32_t,double>& enrjMap,
+        const std::unordered_map<uint32_t,Cell>& cellMap): ShowerShape(enrjMap, cellMap) {}
   ~ShowerShapeTriangle() {}
   
   double firstNeighboors(int i, int j);

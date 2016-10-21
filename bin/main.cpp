@@ -53,6 +53,7 @@ int main(int argc, char** argv) {
     Generator generator(params);
     generator.simulate();
   }
+  // FIXME: improve exception management
   catch(const std::string& excep)
   {
     std::cout<<"An error occured while initializing the generator:\n";

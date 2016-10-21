@@ -4,6 +4,7 @@
 
 #include <string>
 #include <vector>
+#include <unordered_map>
 #include "TVectorD.h"
 #include "TMatrixD.h"
 #ifdef STANDALONE
@@ -29,33 +30,32 @@ class Geometry {
       parameters_(params){}
     ~Geometry() {}
 
+    // FIXME: can simplify the interface by having one single public construct method
     // construct parametrised geometry, default grid 11x11, ie +-5 around the central cell
     void constructFromParameters(bool); 
     // construct geometry from json file
     void constructFromJson(bool);
-    //std::vector<Cell *> getCells() {return cells_;}
 
-    Cell * closestCell(double x, double y); // the cell that contains the point
-    //Cell closestCell(double x, double y); // the cell that contains the point
-    bool isInCell(TVectorD position, const Cell& cell); // test if a point is within a cell
+    const Cell& closestCell(double x, double y) const; // the cell that contains the point
+    bool isInCell(const TVectorD& position, const Cell& cell) const; // test if a point is within a cell
     //bool isInRealCell(TVectorD position, Cell cell); // to apply further mouse bite or virtual dead region 
-    TVectorD positionInCell(TVectorD position); // relative position within the cell
+    TVectorD positionInCell(const TVectorD& position) const; // relative position within the cell
 
-    TVectorD getPosition(int i, int j); // position of cell i,j
+    const TVectorD& getPosition(int i, int j) const; // position of cell i,j
 
     //vect<Cell> getNeighbours (int i, radius r); // not yet implemented
     //vect<Cell> getFirstNeighbours (int i); // not yet implemented
     //vect<Cell> getSecondNeighbours (int i); // not yet implemented
 
     // getters
-    int getNumberOfRows() {return nrows_;} // parameterized case
-    int getNumberOfCols() {return ncols_;} // parameterized case
-    std::vector<Cell *> getCells() {return cells_;}
-    int getIIndex(Cell cell);
-    int getJIndex(Cell cell);
-    int getLayer() {return klayer_;}
-    double getZlayer() {return zlayer_;}
-    Parameters::Geometry::Type getType() {return itype_;} 
+    int getNumberOfRows() const {return nrows_;} // parameterized case
+    int getNumberOfCols() const {return ncols_;} // parameterized case
+    const std::unordered_map<uint32_t, Cell>& getCells() const {return cells_;}
+    //int getIIndex(const Cell& cell) const;
+    //int getJIndex(const Cell& cell) const;
+    int getLayer() const {return klayer_;}
+    double getZlayer() const {return zlayer_;}
+    Parameters::Geometry::Type getType() const {return itype_;} 
 
     double a() const {return a_;}
     double asqrt3() const {return asqrt3_;}
@@ -67,14 +67,14 @@ class Geometry {
 
   private:
 
-    void setCells(std::vector<Cell *> cells) {cells_ = cells;}
+    //void setCells(std::vector<Cell *> cells) {cells_ = cells;}
     void setNrows(int nrows) {nrows_ = nrows;}
     void setNcols(int ncols) {ncols_ = ncols;}
     void setLayer(int klayer);
     void setZlayer(double zlayer) {zlayer_ = zlayer;}
     void setType (Parameters::Geometry::Type itype) {itype_=itype;}
 
-    std::vector<Cell *> cells_;
+    std::unordered_map<uint32_t, Cell> cells_;
     int nrows_;
     int ncols_;
     int klayer_;

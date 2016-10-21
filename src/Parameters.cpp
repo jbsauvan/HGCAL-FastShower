@@ -12,7 +12,8 @@ using namespace boost;
 Parameters::General::
 General():
   events(0),
-  debug(false)
+  debug(false),
+  output_file("")
 {
 }
 
@@ -66,7 +67,9 @@ Generation():
 Parameters::Display::
 Display():
   events(0),
-  size(0)
+  size(0),
+  offset_x(0.),
+  offset_y(0.)
 {
 }
 
@@ -96,6 +99,7 @@ fillGeneral(const python::dict& dict)
 {
   general_.events = python::extract<int>(dict["events"]);
   general_.debug = python::extract<bool>(dict["debug"]);
+  general_.output_file = python::extract<std::string>(dict["output_file"]);
 }
 
 void 
@@ -165,6 +169,8 @@ fillDisplay(const python::dict& dict)
 {
   display_.events = python::extract<int>(dict["display_events"]);
   display_.size = python::extract<int>(dict["display_size"]);
+  display_.offset_x = python::extract<double>(dict["display_offset_x"]);
+  display_.offset_y = python::extract<double>(dict["display_offset_y"]);
 }
 
 
@@ -177,6 +183,7 @@ print() const
   std::cout<<"|- General\n";
   std::cout<<"|-- Events = "<<general_.events<<"\n";
   std::cout<<"|-- Debug = "<<general_.debug<<"\n";
+  std::cout<<"|-- Output file = "<<general_.output_file<<"\n";
   std::cout<<"|- Geometry\n";
   std::cout<<"|-- Type = "<<static_cast<std::underlying_type<Geometry::Type>::type>(geometry_.type)<<"\n";
   std::cout<<"|-- SideLength = "<<geometry_.cell_side<<"\n";
@@ -227,4 +234,5 @@ print() const
   std::cout<<"|- Display\n";
   std::cout<<"|-- Events = "<<display_.events<<"\n";
   std::cout<<"|-- Size = "<<display_.size<<"\n";
+  std::cout<<"|-- Offset = "<<display_.offset_x<<" "<<display_.offset_y<<"\n";
 }

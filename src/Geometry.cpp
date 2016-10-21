@@ -61,155 +61,198 @@ void Geometry::constructFromJson(bool debug) {
 
   // json format from Marina 06/2016
   // units are mm, converted in cm
-
   Json::Reader reader;
   Json::Value obj;
   std::ifstream ifs(filename);
   //bool success = reader.parse(ifs, obj);
   reader.parse(ifs, obj);
   const Json::Value& version = obj["Version"]; 
-  std::cout << " " << std::endl;
-  std::cout << "Reading geometry from JSON file: " << filename << std::endl;
-  std::cout << "Geometry version " << version.asString() << std::endl;
+  if(debug) {
+    std::cout << " " << std::endl;
+    std::cout << "Reading geometry from JSON file: " << filename << std::endl;
+    std::cout << "Geometry version " << version.asString() << std::endl;
+  }
 
   // module meta data
-  const Json::Value& module_area = obj["Module"]["Module_area"]; 
-  std::cout << "Module area : " << module_area.asDouble() << std::endl;
-  const Json::Value& module_cells_and_half_cells = obj["Module"]["Module_cells_(1/1, 1/2)"]; 
-  std::cout << "Module cells (1/1, 1/2) : " << module_cells_and_half_cells.asUInt() << std::endl;
-  const Json::Value& module_full_cells = obj["Module"]["Module_cells_1/1"]; 
-  std::cout << "Module cells_1/1 : " << module_full_cells.asUInt() << std::endl;
-  const Json::Value& module_half_cells = obj["Module"]["Module_cells_1/2"]; 
-  std::cout << "Module cells 1/2 : " << module_half_cells.asUInt() << std::endl;
-  const Json::Value& module_third_cells = obj["Module"]["Module_cells_1/3"]; 
-  std::cout << "Module cells 1/3 : " << module_third_cells.asUInt() << std::endl;
-  const Json::Value& module_center_coord = obj["Module"]["Module_center_coord"]; 
-  std::cout << "Module center coord : " << module_center_coord[0].asDouble() << 
-    " " << module_center_coord[1].asDouble() << std::endl;
-  const Json::Value& module_orientation = obj["Module"]["Module_orientation"]; 
-  std::cout << "Module orientation : " << module_orientation.asDouble() << std::endl;
-  //const Json::Value& module_vertex_coord = obj["Module"]["Module_vertex_coord"]; 
-  std::cout << "Module vertex coord : " << std::endl;
-  for (int i=0; i<6; i++) {
-    const Json::Value& module_vertex_coord = obj["Module"]["Module_vertex_coord"][i]; 
-    std::cout << " vertex " << i << " : " <<  module_vertex_coord[0].asDouble() << 
-      " " << module_vertex_coord[1].asDouble() << std::endl;
-  }   
-  std::cout << " " << std::endl;
+  const Json::Value& module = obj["Module"];
+  if(module.isNull()) throw std::string("No module information found in json file");
+  const Json::Value& module_area = module["Module_area"]; 
+  const Json::Value& module_cells_and_half_cells = module["Module_cells_(1/1, 1/2)"]; 
+  const Json::Value& module_full_cells = module["Module_cells_1/1"]; 
+  const Json::Value& module_half_cells = module["Module_cells_1/2"]; 
+  const Json::Value& module_third_cells = module["Module_cells_1/3"]; 
+  const Json::Value& module_center_coord = module["Module_center_coord"]; 
+  const Json::Value& module_orientation = module["Module_orientation"]; 
+  const Json::Value& module_vertices = module["Module_vertex_coord"];
+  //bool module_vertices_ok = false;
+  std::vector<std::pair<double,double>> module_vertex_coordinates;
+  if(!module_vertices.isNull() && module_vertices.isArray()) {
+    //module_vertices_ok = true;
+    for (unsigned i=0; i<module_vertices.size(); i++) {
+      const Json::Value& coord = module_vertices[i]; 
+      if(coord.isNull() || !coord.isArray() || coord.size()!=2) {
+        //module_vertices_ok = false;
+        break;
+      }
+      module_vertex_coordinates.emplace_back(coord[0].asDouble(), coord[1].asDouble());
+    }
+  }
+  if(!module_cells_and_half_cells.isNull() &&
+      !module_full_cells.isNull() && !module_half_cells.isNull()) {
+    if(module_cells_and_half_cells.asUInt()!=module_half_cells.asUInt()+module_full_cells.asUInt()) {
+      std::cout<<"Inconsistency in the number of full and half cells\n";
+    }
+  }
+  // FIXME: should add more checks
+  if(debug) {
+    std::cout << "Module area : " << module_area.asDouble() << std::endl;
+    std::cout << "Module cells (1/1, 1/2) : " << module_cells_and_half_cells.asUInt() << std::endl;
+    std::cout << "Module cells_1/1 : " << module_full_cells.asUInt() << std::endl;
+    std::cout << "Module cells 1/2 : " << module_half_cells.asUInt() << std::endl;
+    std::cout << "Module cells 1/3 : " << module_third_cells.asUInt() << std::endl;
+    std::cout << "Module center coord : " << module_center_coord[0].asDouble() << 
+      " " << module_center_coord[1].asDouble() << std::endl;
+    std::cout << "Module orientation : " << module_orientation.asDouble() << std::endl;
+    std::cout << "Module vertex coord : " << std::endl;
+    std::cout << " " << std::endl;
+  }
 
   // full hexagon cells meta data
-  const Json::Value& full_hexagons_area = obj["Module"]["FH"]["FH_area"]; 
-  std::cout << "Full hexagon area " << full_hexagons_area.asDouble() << std::endl;
-  const Json::Value& full_hexagons_area_module = obj["Module"]["FH"]["FH_area_module"]; 
-  std::cout << "Full hexagon area module " << full_hexagons_area_module.asDouble() << std::endl;
-  const Json::Value& full_hexagons_count = obj["Module"]["FH"]["FH_count"]; 
-  std:: cout << "Full hexagons nbr of cells " << full_hexagons_count.asUInt() << std::endl;
-  std::cout << " " << std::endl;
+  const Json::Value& hexagons = module["FH"];
+  if(hexagons.isNull() || !hexagons.isObject()) throw std::string("Cannot find full hexagons information");
+  const Json::Value& full_hexagons_area = hexagons["FH_area"]; 
+  const Json::Value& full_hexagons_area_module = hexagons["FH_area_module"]; 
+  const Json::Value& full_hexagons_count = hexagons["FH_count"]; 
+  // FIXME: should add more checks
+  if(debug) {
+    std::cout << "Full hexagon area " << full_hexagons_area.asDouble() << std::endl;
+    std::cout << "Full hexagon area module " << full_hexagons_area_module.asDouble() << std::endl;
+    std:: cout << "Full hexagons nbr of cells " << full_hexagons_count.asUInt() << std::endl;
+    std::cout << " " << std::endl;
+  }
 
   // construct full hexagon cells
-  //for (unsigned int icell=0; icell<1; icell++) {
   for (unsigned int icell=0; icell<full_hexagons_count.asUInt(); icell++) {
     std::string cell_name = fixedLength(icell,5,"FH");
-    const Json::Value& hexagon_attributes = obj["Module"]["FH"][cell_name]; 
+    // FIXME: add more checks
+    const Json::Value& hexagon_attributes = hexagons[cell_name]; 
     int i_index = hexagon_attributes[0]["mapping_coord"][0].asInt();
     int j_index = hexagon_attributes[0]["mapping_coord"][1].asInt();
-    std::cout << "New cell " << cell_name << " : " << std::endl;
-    std::cout << " mapping coordinates : " << 
-      hexagon_attributes[0]["mapping_coord"][0].asInt() << " " <<
-      hexagon_attributes[0]["mapping_coord"][1].asInt() << std::endl;
-    std::cout << " center coordinates : " << 
-      hexagon_attributes[1]["center_coord"][0].asDouble() << " " <<
-      hexagon_attributes[1]["center_coord"][1].asDouble() << std::endl;
-    TVectorD *position = new TVectorD(2);
-    (*position)(0) = hexagon_attributes[1]["center_coord"][0].asDouble()/10.; // cm
-    (*position)(1) = hexagon_attributes[1]["center_coord"][1].asDouble()/10.; // cm
-    std::cout << " orientation : " << 
-      hexagon_attributes[2]["orientation"].asDouble() << std::endl;
-    double orientation = hexagon_attributes[2]["orientation"].asDouble(); 
-    std::cout << " vertex_coordinates : " << std::endl;
-    std::vector<TVectorD *> *vertices = new std::vector<TVectorD *>;
-    for (int i=0; i<6; i++) {
-      TVectorD *vertex = new TVectorD(2);
-      std::cout << "  vertex " << i << " " << 
-        hexagon_attributes[3]["vertex_coord_abs"][i][0].asDouble() << " " <<
-        hexagon_attributes[3]["vertex_coord_abs"][i][1].asDouble() << std::endl;
-      (*vertex)(0) = hexagon_attributes[3]["vertex_coord_abs"][i][0].asDouble()/10.; // cm
-      (*vertex)(1) = hexagon_attributes[3]["vertex_coord_abs"][i][1].asDouble()/10.; // cm
-      vertices->push_back(vertex);
-    } 
-    // create and fill cells
-    Cell *aCell = new Cell(position, vertices, orientation, i_index, j_index); 
-    cells_.push_back(aCell); 
+    TVectorD position(2);
+    position(0) = hexagon_attributes[1]["center_coord"][0].asDouble()/10.; // cm
+    position(1) = hexagon_attributes[1]["center_coord"][1].asDouble()/10.; // cm
+    double orientation = hexagon_attributes[2]["orientation"].asDouble();
+    std::vector<TVectorD> vertices;
+    for (unsigned i=0; i<hexagon_attributes[3]["vertex_coord_abs"].size(); i++) {
+      vertices.emplace_back(2);
+      vertices.back()(0) = hexagon_attributes[3]["vertex_coord_abs"][i][0].asDouble()/10.; // cm
+      vertices.back()(1) = hexagon_attributes[3]["vertex_coord_abs"][i][1].asDouble()/10.; // cm
+
+    }
+    cells_.emplace(
+        Cell::id(i_index, j_index),
+        Cell(std::move(position), std::move(vertices), orientation, i_index, j_index)
+        );
+
+    if(debug) {
+      std::cout << "New cell " << cell_name << " : " << std::endl;
+      std::cout << " mapping coordinates : " << 
+        hexagon_attributes[0]["mapping_coord"][0].asInt() << " " <<
+        hexagon_attributes[0]["mapping_coord"][1].asInt() << std::endl;
+      std::cout << " center coordinates : " << 
+        hexagon_attributes[1]["center_coord"][0].asDouble() << " " <<
+        hexagon_attributes[1]["center_coord"][1].asDouble() << std::endl;
+      std::cout << " orientation : " << 
+        hexagon_attributes[2]["orientation"].asDouble() << std::endl;
+      std::cout << " vertex_coordinates : " << std::endl;
+      for(const auto& vertex : vertices) {
+        std::cout << "  vertex " << 
+          vertex(0) << " " <<
+          vertex(1) << std::endl;
+      }
+    }
   }
-  std::cout << " " << std::endl;
+  if(debug) std::cout << " " << std::endl;
 
   // half hexagon cells meta data
-  const Json::Value& half_hexagons_area = obj["Module"]["Edge_VHH"]["VHH_area"]; 
-  std::cout << "Half hexagon area (edges) : " << half_hexagons_area.asDouble() << std::endl;
-  const Json::Value& half_hexagons_area_module = obj["Module"]["Edge_VHH"]["VHH_area_module"]; 
-  std::cout << "Half hexagon area module (edges) : " << half_hexagons_area_module.asDouble() << std::endl;
-  const Json::Value& half_hexagons_count = obj["Module"]["Edge_VHH"]["VHH_count"]; 
-  std:: cout << "Half hexagons nbr of cells (edges) : " << half_hexagons_count.asUInt() << std::endl;
+  const Json::Value& half_hexagons = module["Edge_VHH"];
+  const Json::Value& half_hexagons_area = half_hexagons["VHH_area"]; 
+  const Json::Value& half_hexagons_area_module = half_hexagons["VHH_area_module"]; 
+  const Json::Value& half_hexagons_count = half_hexagons["VHH_count"]; 
+  // FIXME: should add more checks
+  if(debug) {
+    std::cout << "Half hexagon area (edges) : " << half_hexagons_area.asDouble() << std::endl;
+    std::cout << "Half hexagon area module (edges) : " << half_hexagons_area_module.asDouble() << std::endl;
+    std:: cout << "Half hexagons nbr of cells (edges) : " << half_hexagons_count.asUInt() << std::endl;
+    std::cout << " " << std::endl;
+  }
 
   // construct half hexagon cells
-  std::cout << " " << std::endl;
   for (unsigned int icell=0; icell<half_hexagons_count.asUInt(); icell++) {
     std::string cell_name = fixedLength(icell,5,"VHH");
-    const Json::Value& hexagon_attributes = obj["Module"]["Edge_VHH"][cell_name]; 
-    std::cout << "New cell " << cell_name << " : " << std::endl;
-    std::cout << " mapping coordinates : " << 
-      hexagon_attributes[0]["mapping_coord"][0].asInt() << " " <<
-      hexagon_attributes[0]["mapping_coord"][1].asInt() << std::endl;
+    // FIXME: add more checks
+    const Json::Value& hexagon_attributes = half_hexagons[cell_name]; 
     int i_index = hexagon_attributes[0]["mapping_coord"][0].asInt();
     int j_index = hexagon_attributes[0]["mapping_coord"][1].asInt();
-    std::cout << " center coordinates : " << 
-      hexagon_attributes[1]["center_coord"][0].asDouble() << " " <<
-      hexagon_attributes[1]["center_coord"][1].asDouble() << std::endl;
-    TVectorD *position = new TVectorD(2);
-    (*position)(0) = hexagon_attributes[1]["center_coord"][0].asDouble()/10.; // cm
-    (*position)(1) = hexagon_attributes[1]["center_coord"][1].asDouble()/10.; // cm
-    std::cout << " orientation : " << 
-      hexagon_attributes[2]["orientation"].asDouble() << std::endl;
+    TVectorD position(2);
+    position(0) = hexagon_attributes[1]["center_coord"][0].asDouble()/10.; // cm
+    position(1) = hexagon_attributes[1]["center_coord"][1].asDouble()/10.; // cm
     double orientation = hexagon_attributes[2]["orientation"].asDouble(); 
-    std::cout << " vertex_coordinates : " << std::endl;
-    std::vector<TVectorD *> *vertices = new std::vector<TVectorD *>;
-    for (int i=0; i<4; i++) {
-      TVectorD *vertex = new TVectorD(2);
-      std::cout << "  vertex " << i << " " << 
-        hexagon_attributes[3]["vertex_coord_abs"][i][0].asDouble() << " " <<
-        hexagon_attributes[3]["vertex_coord_abs"][i][1].asDouble() << std::endl;
-      (*vertex)(0) = hexagon_attributes[3]["vertex_coord_abs"][i][0].asDouble()/10.;// cm
-      (*vertex)(1) = hexagon_attributes[3]["vertex_coord_abs"][i][1].asDouble()/10.;// cm
-      vertices->push_back(vertex);
+    std::vector<TVectorD> vertices;
+    for (unsigned i=0; i<hexagon_attributes[3]["vertex_coord_abs"].size(); i++) {
+      vertices.emplace_back(2);
+      vertices.back()(0) = hexagon_attributes[3]["vertex_coord_abs"][i][0].asDouble()/10.;// cm
+      vertices.back()(1) = hexagon_attributes[3]["vertex_coord_abs"][i][1].asDouble()/10.;// cm
     }
-    // create and fill cells
-    Cell *aCell = new Cell(position, vertices, orientation, i_index, j_index); 
-    cells_.push_back(aCell);     
+    cells_.emplace(
+        Cell::id(i_index, j_index),
+        Cell(std::move(position), std::move(vertices), orientation, i_index, j_index)
+        ); 
+
+    if(debug) {
+      std::cout << "New cell " << cell_name << " : " << std::endl;
+      std::cout << " mapping coordinates : " << 
+        hexagon_attributes[0]["mapping_coord"][0].asInt() << " " <<
+        hexagon_attributes[0]["mapping_coord"][1].asInt() << std::endl;
+      std::cout << " center coordinates : " << 
+        hexagon_attributes[1]["center_coord"][0].asDouble() << " " <<
+        hexagon_attributes[1]["center_coord"][1].asDouble() << std::endl;
+
+      std::cout << " orientation : " << 
+        hexagon_attributes[2]["orientation"].asDouble() << std::endl;
+      std::cout << " vertex_coordinates : " << std::endl;
+      for(const auto& vertex : vertices) {
+        std::cout << "  vertex " << 
+          vertex(0) << " " <<
+          vertex(1) << std::endl;
+      }
+    }
   }  
-  std::cout << " " << std::endl;
+  if(debug) std::cout << " " << std::endl;
 
 }
 
 void Geometry::constructFromParameters(bool debug) {
-
+  // a tesselation of the plane with polygons
   double a(parameters_.cell_side);
   int nrows(parameters_.cells_nx);
   int ncols(parameters_.cells_ny);
   int klayer(parameters_.layer);
   Parameters::Geometry::Type itype(parameters_.type);
 
-  // a tesselation of the plane with polygons
-  std::cout << " " << std::endl;
-  std::cout << "Building parametrized geometry : " << nrows << " " << ncols  << std::endl;
-  // itype=0: heaxgonal cells
-  // itype=1: triangular cells
-  if (itype==Parameters::Geometry::Type::Hexagons) std:: cout << "with hexagonal cells " << std::endl;
-  else if (itype==Parameters::Geometry::Type::Triangles) std:: cout << "with triangular cells " << std::endl;
+  if(debug) {
+    std::cout << " " << std::endl;
+    std::cout << "Building parametrized geometry : " << nrows << " " << ncols  << std::endl;
+    // itype=0: heaxgonal cells
+    // itype=1: triangular cells
+    if (itype==Parameters::Geometry::Type::Hexagons) std:: cout << "with hexagonal cells " << std::endl;
+    else if (itype==Parameters::Geometry::Type::Triangles) std:: cout << "with triangular cells " << std::endl;
 
-  // itype=0: heaxgonal cells
-  // itype=1: triangular cells
-  if (itype==Parameters::Geometry::Type::Hexagons) std:: cout << "with hexagonal cells " << std::endl;
-  else if (itype==Parameters::Geometry::Type::Triangles) std:: cout << "with triangular cells " << std::endl;
+    // itype=0: heaxgonal cells
+    // itype=1: triangular cells
+    if (itype==Parameters::Geometry::Type::Hexagons) std:: cout << "with hexagonal cells " << std::endl;
+    else if (itype==Parameters::Geometry::Type::Triangles) std:: cout << "with triangular cells " << std::endl;
+  }
   
   setNrows(nrows);
   setNcols(ncols);
@@ -223,17 +266,16 @@ void Geometry::constructFromParameters(bool debug) {
   // vertices coordinates wrt cell center
   const int nverticeshexagon=6; // hexagons
   const int nverticestriangle=3; // hexagons  
-  const double hexagonoffsetx[nverticeshexagon] = {asqrt3over2_,asqrt3over2_,0.,-asqrt3over2_,-asqrt3over2_,0};
-  const double hexagonoffsety[nverticeshexagon] = {-aover2_,aover2_,a_,aover2_,-aover2_,-a_};
-  const double uptriangleoffsetx[nverticestriangle] = {aover2_,0.,-aover2_};
-  const double uptriangleoffsety[nverticestriangle] = {-asqrt3over2_/3.,asqrt3_/3.,-asqrt3over2_/3.};
-  const double downtriangleoffsetx[nverticestriangle] = {aover2_,-aover2_,0.};
-  const double downtriangleoffsety[nverticestriangle] = {asqrt3over2_/3.,asqrt3over2_/3.,-asqrt3_/3.};
+  const std::array<double, nverticeshexagon> hexagonoffsetx = {asqrt3over2_,asqrt3over2_,0.,-asqrt3over2_,-asqrt3over2_,0};
+  const std::array<double,nverticeshexagon> hexagonoffsety = {-aover2_,aover2_,a_,aover2_,-aover2_,-a_};
+  const std::array<double,nverticestriangle> uptriangleoffsetx = {aover2_,0.,-aover2_};
+  const std::array<double, nverticestriangle> uptriangleoffsety = {-asqrt3over2_/3.,asqrt3_/3.,-asqrt3over2_/3.};
+  const std::array<double, nverticestriangle> downtriangleoffsetx = {aover2_,-aover2_,0.};
+  const std::array<double,nverticestriangle> downtriangleoffsety = {asqrt3over2_/3.,asqrt3over2_/3.,-asqrt3_/3.};
   int nvertices=nverticeshexagon;
   if (itype==Parameters::Geometry::Type::Triangles) nvertices=nverticestriangle;
-  std::vector<Cell *> cells;
-  // reserve memory for vector of cells
-  cells.reserve(nrows*ncols);
+  cells_.clear();
+  //cells_.reserve(nrows*ncols);
 
   double zlayer;
   if (klayer == -1) zlayer = 0.;  // entry face required
@@ -250,63 +292,89 @@ void Geometry::constructFromParameters(bool debug) {
   if (itype==Parameters::Geometry::Type::Triangles) xoffset = parameters_.offset*aover2_;
 
  for (int i=0; i<nrows_;i++) {
-  
     for (int j=0; j<ncols_;j++) {
-      if (debug) std::cout << "Creating new cell of type " << static_cast<std::underlying_type<Parameters::Geometry::Type>::type>(itype) << " : " << std::endl;
-      if (debug) std::cout << " mapping coordinates : " << 
-        i << " " <<
-        j << std::endl;
-      double x=0., y=0.;
-      if (itype==Parameters::Geometry::Type::Hexagons) { // hexagons
-        x = xoffset + i*asqrt3_ + j*asqrt3over2_;
-        double yprime = j*asqrt3_;
-        // get back to the orthogonal y axis
-        y = yprime*asqrt3over2_/a_;
-      } else if (itype==Parameters::Geometry::Type::Triangles) { // triangles
-        x = xoffset + i*aover2_ + j*aover2_;
-        y = j*asqrt3over2_;
-        if (i%2 == 1) y = y + asqrt3_/6.; // cell center is shifted in y for downward triangles
+      if (debug) {
+        std::cout << "Creating new cell of type " << static_cast<std::underlying_type<Parameters::Geometry::Type>::type>(itype) << " : " << std::endl;
+        std::cout << " mapping coordinates : " << 
+          i << " " <<
+          j << std::endl;
       }
+      double x=0., y=0.;
+      switch(itype) {
+        case Parameters::Geometry::Type::Hexagons:
+        {
+          x = xoffset + i*asqrt3_ + j*asqrt3over2_;
+          double yprime = j*asqrt3_;
+          // get back to the orthogonal y axis
+          y = yprime*asqrt3over2_/a_;
+          break;
+        }
+        case Parameters::Geometry::Type::Triangles:
+        {
+          x = xoffset + i*aover2_ + j*aover2_;
+          y = j*asqrt3over2_;
+          if (i%2 == 1) y = y + asqrt3_/6.; // cell center is shifted in y for downward triangles
+          break;
+        }
+      };
 
-      //std::cout << "cell i,j,x,y " << i << " " << j << " " << x << " " << y << std::endl;
-      TVectorD *position = new TVectorD(2);
-      (*position)(0) = x;
-      (*position)(1) = y;
-      if (debug) std::cout << " center coordinates : " << 
-        x << " " <<
+      TVectorD position(2);
+      position(0) = x;
+      position(1) = y;
+      if (debug) {
+        std::cout << " center coordinates : " << 
+          x << " " <<
           y << std::endl;
+      }
       double orientation = 90.;
       if (itype == Parameters::Geometry::Type::Triangles && i%2 != 0) orientation =  -90.; // for downward triangles
-      if (debug) std::cout << " orientation : " << 
+      if (debug) {
+        std::cout << " orientation : " << 
         orientation << std::endl;
-      std::vector<TVectorD *> *vertices = new std::vector<TVectorD *>;
+      }
+      std::vector<TVectorD> vertices;
       for (int iv=0; iv<nvertices; iv++) {
-        TVectorD *vertex = new TVectorD(2);
-        if (itype==Parameters::Geometry::Type::Hexagons) { // hexagons
-          (*vertex)(0) = x+hexagonoffsetx[iv];
-          (*vertex)(1) = y+hexagonoffsety[iv];
-        } else if (itype==Parameters::Geometry::Type::Triangles) { // triangles
-          if (i%2 == 0) {
-            (*vertex)(0) = x+uptriangleoffsetx[iv];
-            (*vertex)(1) = y+uptriangleoffsety[iv];
-          } else {
-            (*vertex)(0) = x+downtriangleoffsetx[iv];
-            (*vertex)(1) = y+downtriangleoffsety[iv];
+        vertices.emplace_back(2);
+        switch(itype) {
+          case Parameters::Geometry::Type::Hexagons:
+          {
+            vertices.back()(0) = x+hexagonoffsetx[iv];
+            vertices.back()(1) = y+hexagonoffsety[iv];
+            break;
           }
-        } 
-        if (debug) std::cout << "  vertex " << i << " " << 
-          (*vertex)(0) << " " <<
-            (*vertex)(1) << std::endl;
-        vertices->push_back(vertex);       
+          case Parameters::Geometry::Type::Triangles:
+          {
+            switch(i%2) {
+              case 0:
+              {
+                vertices.back()(0) = x+uptriangleoffsetx[iv];
+                vertices.back()(1) = y+uptriangleoffsety[iv];
+                break;
+              }
+              default:
+              {
+                vertices.back()(0) = x+downtriangleoffsetx[iv];
+                vertices.back()(1) = y+downtriangleoffsety[iv];
+                break;
+              }
+            }
+            break;
+          }
+        };
+        if (debug) {
+          std::cout << "  vertex " << i << " " << 
+            vertices.back()(0) << " " <<
+            vertices.back()(1) << std::endl;
+        }
       }
 
-      //cells.push_back(new Cell(x,y));
-      cells.push_back(new Cell(position,vertices,orientation,i,j));
+      cells_.emplace(
+          Cell::id(i, j),
+          Cell(std::move(position),std::move(vertices),orientation,i,j)
+          );
 
     }
-  
   }
-  setCells(cells);
 }
 
 void Geometry::setLayer(int klayer) {
@@ -325,12 +393,12 @@ void Geometry::print() {
   std::cout << "Printing the geometry : " << std::endl;
   if (klayer_ != -1) std::cout << "the layer plane is " << klayer_ << " at z position " << parameters_.layers_z[klayer_] << std::endl;
   else std::cout << "the layer plane is " << klayer_ << " at z position 0." << std::endl;
-  std::vector<Cell *>::iterator ic;
-  for (ic=cells_.begin();ic!=cells_.end();ic++) { 
+  for (const auto& id_cell : cells_) { 
+    const auto& cell = id_cell.second;
     std::cout << "new cell with indices " <<
-      "("<< (*ic)->getIIndex() << "," << (*ic)->getJIndex() << ")" <<  
+      "("<< cell.getIIndex() << "," << cell.getJIndex() << ")" <<  
       " and position " << 
-      "("<<((*ic)->getPosition())(0) << "," << ((*ic)->getPosition())(1) << ")" << 
+      "("<<cell.getPosition()(0) << "," << cell.getPosition()(1) << ")" << 
       std::endl;   
   }  
 
@@ -338,7 +406,7 @@ void Geometry::print() {
 
 void Geometry::draw(const Parameters::Display& params, double scale) {
 
-  double summitx[7]; double summity[7];
+  std::array<double, 7> summitx, summity;
 
   // for the case of the full geometry from json, offset the display by (0.5,0.5) such that
   // the center of the module is at the center of the pad
@@ -349,13 +417,20 @@ void Geometry::draw(const Parameters::Display& params, double scale) {
     ydisplayoffset=params.offset_y;
   }
 
-  for (std::vector<Cell *>::iterator ic=cells_.begin();ic!=cells_.end();ic++) { 
-    int nvertices=((*ic)->getVertices()).size(); 
-    for (int i=0;i<nvertices;i++) summitx[i]=((*((*ic)->getVertices()[i]))(0)*scale+xdisplayoffset);
-    summitx[nvertices]=((*((*ic)->getVertices()[0]))(0)*scale+xdisplayoffset);
-    for (int i=0;i<nvertices;i++) summity[i]=((*((*ic)->getVertices()[i]))(1)*scale+ydisplayoffset);
-    summity[nvertices]=((*((*ic)->getVertices()[0]))(1)*scale+ydisplayoffset);
-    TPolyLine *polygon = new TPolyLine(nvertices+1,summitx,summity);
+  for (const auto& id_cell : cells_) { 
+    const auto& cell = id_cell.second;
+    unsigned i=0;
+    for (const auto& vertex : cell.getVertices()) {
+      summitx[i]=vertex(0)*scale+xdisplayoffset;
+      summity[i]=vertex(1)*scale+ydisplayoffset;
+      i++;
+    }
+    unsigned nvertices = cell.getVertices().size();
+    summitx[nvertices]=cell.getVertices()[0](0)*scale+xdisplayoffset;
+    summity[nvertices]=cell.getVertices()[0](1)*scale+ydisplayoffset;
+    // Calling Draw makes the current pad take the ownership of the object
+    // So raw pointers are used, and the objects are deleted when the pad is deleted
+    TPolyLine* polygon = new TPolyLine(nvertices+1,summitx.data(),summity.data());
     polygon->SetFillColor(38);
     polygon->SetLineColor(4);
     polygon->SetLineWidth(1);
@@ -364,34 +439,33 @@ void Geometry::draw(const Parameters::Display& params, double scale) {
 
 }
 
-TVectorD Geometry::getPosition(int i, int j) {
+const TVectorD& Geometry::getPosition(int i, int j) const {
 
-  TVectorD position(2);
-  // for parameterised geometries uses indices
-  // this is error prone (code duplication), do we really gain time?
-  if (getType()!=Parameters::Geometry::Type::External) { 
-    if (getType()==Parameters::Geometry::Type::Hexagons) { // hexagons
-      position(0) = parameters_.offset*asqrt3_+i*asqrt3_+j*asqrt3over2_;
-      double yprime = j*asqrt3_;
-      position(1) = yprime*asqrt3over2_/a_;
-    } else { // triangles
-      position(0) = parameters_.offset*asqrt3_+i*aover2_+j*aover2_;
-      position(1) = j*asqrt3over2_;    
-      if (i%2 == 1) position(1) = position(1) + asqrt3_/6.; // cell center is shifted in y for downward triangles
-    }
-  } else { // full geometry
-    std::vector<Cell *>::iterator ic;
-    for (ic=cells_.begin();ic!=cells_.end();ic++) { 
-      if ((*ic)->getIIndex()!=i) continue; 
-      if ((*ic)->getJIndex()!=j) continue; 
-    }  
-    if (ic!=cells_.end()) position = (*ic)->getPosition();
-  }
-  return position;
-
+  //TVectorD position(2);
+  //// for parameterised geometries uses indices
+  //// this is error prone (code duplication), do we really gain time?
+  //if (getType()!=Parameters::Geometry::Type::External) { 
+    //if (getType()==Parameters::Geometry::Type::Hexagons) { // hexagons
+      //position(0) = parameters_.offset*asqrt3_+i*asqrt3_+j*asqrt3over2_;
+      //double yprime = j*asqrt3_;
+      //position(1) = yprime*asqrt3over2_/a_;
+    //} else { // triangles
+      //position(0) = parameters_.offset*asqrt3_+i*aover2_+j*aover2_;
+      //position(1) = j*asqrt3over2_;    
+      //if (i%2 == 1) position(1) = position(1) + asqrt3_/6.; // cell center is shifted in y for downward triangles
+    //}
+  //} else { // full geometry
+  //for (const auto& id_cell : cells_) { 
+    //if (cell.getIIndex()!=i) continue; 
+    //if (cell.getJIndex()!=j) continue; 
+    //return cell.getPosition();
+  //}  
+  //throw std::string("Didn't find cell");
+  // This will throw an exception if the cell is not found
+  return cells_.at(Cell::id(i,j)).getPosition();
 }
 
-Cell * Geometry::closestCell(double x, double y) {
+const Cell& Geometry::closestCell(double x, double y) const {
 
   // beware that this function does not explicit check that the point is within
   // the cell, therefore if the cell grid is too small it will return
@@ -403,67 +477,65 @@ Cell * Geometry::closestCell(double x, double y) {
   // to test time spent here
   //return *cells_.begin();
  
-  double r2min=99999.;
-  std::vector<Cell *>::iterator ic, icfound;
-  for (ic=cells_.begin();ic!=cells_.end();ic++) { 
-
-    double xcell = (*ic)->getPosition()(0);     
-    double ycell = (*ic)->getPosition()(1);
+  double r2min = std::numeric_limits<double>::max();
+  auto icfound = cells_.cend();
+  for (auto ic=cells_.cbegin();ic!=cells_.cend();ic++) { 
+    double xcell = ic->second.getPosition()(0);     
+    double ycell = ic->second.getPosition()(1);
     // now compute the distances and take the smallest one
     double r2 = (xcell-x)*(xcell-x) + (ycell-y)*(ycell-y);
     if (r2<r2min) {
       r2min=r2;
       icfound=ic;
     }
-
   } 
 
-  if (icfound==cells_.end())
-    std::cout << "[Geometry::closestCell] Cell not found!! x, y " << 
-      x << " " << y << std::endl;
+  if (icfound==cells_.cend()) {
+    // FIXME: do we want to throw an exception?
+    throw std::string("Didn't find closest cell");
+    //std::cout << "[Geometry::closestCell] Cell not found!! x, y " << 
+      //x << " " << y << std::endl;
+  }
 
-  return *icfound;
-
+  return icfound->second;
 }
 
-TVectorD Geometry::positionInCell(TVectorD position) {
+TVectorD Geometry::positionInCell(const TVectorD& position) const {
 
   TVectorD relativeposition(2);
-  relativeposition=position-closestCell(position(0),position(1))->getPosition();
+  relativeposition=position-closestCell(position(0),position(1)).getPosition();
   return relativeposition;
 
 }
 
-bool Geometry::isInCell(TVectorD position, const Cell& cell) {
+bool Geometry::isInCell(const TVectorD& position, const Cell& cell) const {
 
   // implementation below works for any convex cell described by its vertices
   // assumes vertices are consecutive along the cell perimeter and ordered along direct rotation
 
   // loop on pair of consective vertices 
-  for (unsigned int i=0;i<cell.getVertices().size()-1;i++) {
-
-    //TVectorD *vertex = new TVectorD(2);
-    double xa =(*cell.getVertices()[i])(0);
-    double ya =(*cell.getVertices()[i])(1);
-    double xb =(*cell.getVertices()[i+1])(0);
-    double yb =(*cell.getVertices()[i+1])(1);
+  const auto& vertices = cell.getVertices();
+  for (unsigned int i=0;i<vertices.size()-1;i++) {
+    double xa = vertices[i](0);
+    double ya = vertices[i](1);
+    double xb = vertices[i+1](0);
+    double yb = vertices[i+1](1);
     double sign = (xb-xa)*(position(1)-ya) - (yb-ya)*(position(0)-xa);
     if (sign<0.) return false;
   }  
 
   return true;
-
 }
 
-int Geometry::getIIndex(Cell cell) {
+//int Geometry::getIIndex(const Cell& cell) const {
 
-  return cell.getIIndex();
+  //return cell.getIIndex();
 
-}
+//}
 
-int Geometry::getJIndex(Cell cell) {
+//int Geometry::getJIndex(const Cell& cell) const {
 
-  return cell.getJIndex();
+  //return cell.getJIndex();
 
-}
+//}
 

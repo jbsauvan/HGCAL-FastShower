@@ -2,7 +2,7 @@
 #ifndef __HGCalSimulation_FastShower_ShowerShape_h__
 #define __HGCalSimulation_FastShower_ShowerShape_h__
 
-#include <map>
+#include <unordered_map>
 #ifdef STANDALONE
 #include "Cell.h"
 #else
@@ -15,11 +15,11 @@ class ShowerShape {
   
   public:
   
-    ShowerShape() {} // default constructor
-    ShowerShape(std::map<Cell*,double,CellComp>* enrjMap);
-    ~ShowerShape() {if (enrjMap_) delete enrjMap_;}
+    ShowerShape(const std::unordered_map<uint32_t,double>&,
+        const std::unordered_map<uint32_t,Cell>&);
+    ~ShowerShape() {}
 
-    Cell *maxCell() {return maxCell_;}
+    const Cell* maxCell() {return maxCell_;}
     double maxE1() {return maxE1_;} // hotest cell energy
     int imax() {return imax_;}
     int jmax() {return jmax_;}
@@ -29,9 +29,9 @@ class ShowerShape {
 
   protected:
   
-    std::map<Cell*,double,CellComp>* enrjMap_;  
-    std::map<int,Cell*> cellMap_;  // cell 1D indexing
-    Cell *maxCell_; // hotest cell
+    const std::unordered_map<uint32_t,double>& enrjMap_;  
+    const std::unordered_map<uint32_t,Cell>& cellMap_;  // cell 1D indexing
+    const Cell* maxCell_; // hotest cell
     double maxE1_; // hotest cell energy
     int imax_; // hotest cell i index
     int jmax_; // hotest cell j index

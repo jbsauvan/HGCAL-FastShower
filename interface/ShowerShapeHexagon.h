@@ -14,8 +14,8 @@ class ShowerShapeHexagon: public ShowerShape {
   
   public:
   
-    ShowerShapeHexagon() {} // default constructor
-    ShowerShapeHexagon(std::map<Cell*,double,CellComp>* enrjMap): ShowerShape(enrjMap) {}
+    ShowerShapeHexagon(const std::unordered_map<uint32_t,double>& enrjMap,
+        const std::unordered_map<uint32_t,Cell>& cellMap): ShowerShape(enrjMap, cellMap) {}
     ~ShowerShapeHexagon() {}
 
     double firstNeighboors(int i, int j);

@@ -9,7 +9,7 @@ generation_fluctuation = True
 generation_number_of_hits_per_gev = 1000
 # mip for 200 microns Si
 generation_mip_energy = 0.000055
-# sampling fraction in mips
+# sampling fraction 
 # taken from 600mips in layer max for 75 GeV e-
 generation_sampling = 0.0055
 # electronic noise
