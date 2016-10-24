@@ -17,7 +17,7 @@
 #include "HGCalSimulation/FastShower/interface/Geometry.h"
 #include "HGCalSimulation/FastShower/interface/Parameters.h"
 #include "HGCalSimulation/FastShower/interface/ShowerParametrization.h"
-#include "HGCalSimulation/FastShower/interface/OuptutService.h"
+#include "HGCalSimulation/FastShower/interface/OutputService.h"
 #endif
 
 
