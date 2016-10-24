@@ -24,6 +24,7 @@
 Generator::
 Generator(const Parameters& params):
   geometry_(params.geometry()),
+  output_(params.general().output_file),
   shower_(params.shower()),
   parameters_(params)
 {
@@ -72,6 +73,7 @@ void Generator::simulate() {
   ShowerParametrization aShowerParametrization(parameters_.shower());
 
   // book the histograms  
+  // FIXME: Manage the histograms in OutputService
   TH1F hTransverseProfile("hTransverseProfile","Generated transverse profile (cm)",100,0.,20.);
   TH1F hPhiProfile("hPhiProfile","Generated azimuthal profile (cm)",100,0.,6.3);
   TH1F hEnergyGen("hEnergyGen","Generated total energy",100,0.,300.);
@@ -128,7 +130,7 @@ void Generator::simulate() {
   }
 
 
-  TFile hFile(parameters_.general().output_file.c_str(),"RECREATE");
+
   std::vector<std::unique_ptr<TCanvas>> canvas;
   // start main loop on all events
   for (unsigned iev=1; iev<=nevents; iev++) {
@@ -279,6 +281,7 @@ void Generator::simulate() {
       canvas.emplace_back(display(hCellEnergyEvtMap,iev));    
 
     }
+    output_.fillTree(event, geometry_);
 
   }
 
@@ -309,8 +312,6 @@ void Generator::simulate() {
     canvas_ptr->Write();
   }
 
-  hFile.Write();
-  hFile.Close();
 
 }
 

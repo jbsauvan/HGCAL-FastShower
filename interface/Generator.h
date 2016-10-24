@@ -11,11 +11,13 @@
 #include "Geometry.h"
 #include "Parameters.h"
 #include "ShowerParametrization.h"
+#include "OutputService.h"
 #else
 #include "HGCalSimulation/FastShower/interface/Cell.h"
 #include "HGCalSimulation/FastShower/interface/Geometry.h"
 #include "HGCalSimulation/FastShower/interface/Parameters.h"
 #include "HGCalSimulation/FastShower/interface/ShowerParametrization.h"
+#include "HGCalSimulation/FastShower/interface/OuptutService.h"
 #endif
 
 
@@ -33,6 +35,7 @@ class Generator {
   private:
     TRandom3 gun_;
     Geometry geometry_;
+    OutputService output_;
     ShowerParametrization shower_;
     const Parameters& parameters_;
     
