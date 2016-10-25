@@ -11,17 +11,20 @@
 #include "Generator.h"
 #include "ShowerShapeHexagon.h"
 #include "ShowerShapeTriangle.h"
+#include "Event.h"
 #else
 #include "HGCalSimulation/FastShower/interface/Generator.h"
 #include "HGCalSimulation/FastShower/interface/ShowerParametrization.h"
 #include "HGCalSimulation/FastShower/interface/ShowerShapeHexagon.h"
 #include "HGCalSimulation/FastShower/interface/ShowerShapeTriangle.h"
+#include "HGCalSimulation/FastShower/interface/Event.h"
 #endif
 
 
 Generator::
 Generator(const Parameters& params):
   geometry_(params.geometry()),
+  output_(params.general().output_file),
   shower_(params.shower()),
   parameters_(params)
 {
@@ -69,10 +72,8 @@ void Generator::simulate() {
 
   ShowerParametrization aShowerParametrization(parameters_.shower());
 
-  // energy map
-  std::unordered_map<uint32_t, double> enrjMap;
-
   // book the histograms  
+  // FIXME: Manage the histograms in OutputService
   TH1F hTransverseProfile("hTransverseProfile","Generated transverse profile (cm)",100,0.,20.);
   TH1F hPhiProfile("hPhiProfile","Generated azimuthal profile (cm)",100,0.,6.3);
   TH1F hEnergyGen("hEnergyGen","Generated total energy",100,0.,300.);
@@ -129,7 +130,7 @@ void Generator::simulate() {
   }
 
 
-  TFile hFile(parameters_.general().output_file.c_str(),"RECREATE");
+
   std::vector<std::unique_ptr<TCanvas>> canvas;
   // start main loop on all events
   for (unsigned iev=1; iev<=nevents; iev++) {
@@ -138,9 +139,8 @@ void Generator::simulate() {
     std::cout << "================ Simulating event: " << iev << " ================" << std::endl;    
 
     const auto& cells = geometry_.getCells();
-    // initialize energies
-    enrjMap.clear();
-    for (const auto& id_cell : cells) enrjMap.emplace(id_cell.first, 0.);
+    // initialize event
+    Event event(0, iev); // default run number =0
 
     energygen = 0.;
     energygenincells = 0.;
@@ -148,9 +148,9 @@ void Generator::simulate() {
     
     if (parameters_.generation().noise) {
       double calibratednoise = parameters_.generation().noise_sigma*parameters_.generation().mip_energy/parameters_.generation().sampling;
-      for (auto& id_energy : enrjMap) {
+      for (auto& id_cell : cells) {
         double enoise = gun_.Gaus(0.,calibratednoise);
-        id_energy.second += enoise;
+        event.fillHit(id_cell.first, enoise);
         energyrec += enoise;
         if (debug) std::cout << "adding " << enoise << " GeV noise in cell " << std::endl;      
       }
@@ -236,7 +236,7 @@ void Generator::simulate() {
 
       // add energy to corresponding cell
       if (isincell) {
-        enrjMap.at(cell.id()) += denrj;    
+        event.fillHit(cell.id(), denrj);
         energygenincells += denrj;  
         energyrec += denrj; 
       }	
@@ -254,9 +254,9 @@ void Generator::simulate() {
     
     std::unique_ptr<ShowerShape> aShowerShape;
     if (parameters_.geometry().type!=Parameters::Geometry::Type::Triangles) { // hexagons
-      aShowerShape.reset(new ShowerShapeHexagon(enrjMap, geometry_.getCells()));
+      aShowerShape.reset(new ShowerShapeHexagon(event.hits(), geometry_.getCells()));
     } else { // triangles
-      aShowerShape.reset(new ShowerShapeTriangle(enrjMap, geometry_.getCells()));   
+      aShowerShape.reset(new ShowerShapeTriangle(event.hits(), geometry_.getCells()));   
     }  
     std::cout << "cell max i,j " << aShowerShape->maxCell()->getIIndex() << " " << aShowerShape->maxCell()->getJIndex()
     << " with energy " << aShowerShape->maxE1() << std::endl;
@@ -266,7 +266,7 @@ void Generator::simulate() {
     hEnergyGen.Fill(energygen,1.);
     hEnergySum.Fill(energyrec,1.);
 
-    for (const auto& id_energy : enrjMap) { 
+    for (const auto& id_energy : event.hits()) { 
       hCellEnergyMap.at(id_energy.first).Fill(id_energy.second);
     }
 
@@ -274,13 +274,14 @@ void Generator::simulate() {
 
     // if requested display a few events
     if (iev<=nevents) {
-      for (const auto& id_energy : enrjMap) { 
+      for (const auto& id_energy : event.hits()) { 
         hCellEnergyEvtMap.at(id_energy.first).Reset();
         hCellEnergyEvtMap.at(id_energy.first).Fill(id_energy.second);
       }
       canvas.emplace_back(display(hCellEnergyEvtMap,iev));    
 
     }
+    output_.fillTree(event, geometry_);
 
   }
 
@@ -311,8 +312,6 @@ void Generator::simulate() {
     canvas_ptr->Write();
   }
 
-  hFile.Write();
-  hFile.Close();
 
 }
 

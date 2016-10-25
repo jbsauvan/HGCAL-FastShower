@@ -22,6 +22,8 @@ SRCPP = main.cpp\
 	ShowerShape.cpp\
 	ShowerShapeHexagon.cpp\
 	ShowerShapeTriangle.cpp\
+	Event.cpp\
+	OutputService.cpp\
 	jsoncpp.cpp
 
          
