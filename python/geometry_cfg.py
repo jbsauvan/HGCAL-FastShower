@@ -21,4 +21,4 @@ geometry_cells_ny = 31
 # offset <0 starting cell along x, this is to fully fill the display window
 geometry_offset = -9
 #
-geometry_file = 'AC_11.json'
+geometry_file = 'data/AC_11.json'
