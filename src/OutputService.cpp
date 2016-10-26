@@ -16,6 +16,10 @@ OutputService(const std::string& file_name):
 {
   tree_->Branch("run", &run_, "run/i");
   tree_->Branch("event", &event_, "event/i");
+  tree_->Branch("gen_energy", &gen_energy_, "gen_energy/F");
+  tree_->Branch("gen_x", &gen_x_, "gen_x/F");
+  tree_->Branch("gen_y", &gen_y_, "gen_y/F");
+  tree_->Branch("gen_eta", &gen_eta_, "gen_eta/F");
   tree_->Branch("cell_n", &cell_n_, "cell_n/i");
   tree_->Branch("cell_energy", &cell_energy_);
   tree_->Branch("cell_x", &cell_x_);
@@ -37,6 +41,10 @@ fillTree(const Event& event, const Geometry& geometry)
   clear();
   run_ = event.run();
   event_ = event.event();
+  gen_energy_ = event.generatedEnergy();
+  gen_x_ = event.generatedX();
+  gen_y_ = event.generatedY();
+  gen_eta_ = event.generatedEta();
   cell_n_ = event.hits().size();
   for(const auto& id_hit : event.hits())
   {
@@ -55,6 +63,10 @@ clear()
 {
   run_ = 0;
   event_ = 0;
+  gen_energy_ = 0.;
+  gen_x_ = 0.;
+  gen_y_ = 0.;
+  gen_eta_ = 0.;
   cell_n_ = 0;
   cell_energy_.clear();
   cell_x_.clear();

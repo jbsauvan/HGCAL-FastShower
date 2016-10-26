@@ -25,6 +25,16 @@ fillHit(uint32_t id, double energy)
 
 void
 Event::
+setGenerated(double energy, double x, double y, double eta)
+{
+  generated_energy_ = energy;
+  generated_x_ = x;
+  generated_y_  = y;
+  generated_eta_ = eta;
+}
+
+void
+Event::
 clear()
 {
   hits_.clear();
