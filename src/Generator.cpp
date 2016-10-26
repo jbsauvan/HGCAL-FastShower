@@ -142,6 +142,11 @@ void Generator::simulate() {
     // initialize event
     Event event(0, iev); // default run number =0
 
+    event.setGenerated(parameters_.generation().energy, 
+        parameters_.generation().incident_x, 
+        parameters_.generation().incident_y,
+        parameters_.generation().incident_eta);
+
     energygen = 0.;
     energygenincells = 0.;
     energyrec = 0.;
