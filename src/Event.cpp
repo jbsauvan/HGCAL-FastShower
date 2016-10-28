@@ -25,12 +25,11 @@ fillHit(uint32_t id, double energy)
 
 void
 Event::
-setGenerated(double energy, double x, double y, double eta)
+setGenerated(double energy, double eta, double phi)
 {
   generated_energy_ = energy;
-  generated_x_ = x;
-  generated_y_  = y;
   generated_eta_ = eta;
+  generated_phi_ = phi;
 }
 
 void

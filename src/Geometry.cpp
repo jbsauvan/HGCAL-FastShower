@@ -5,6 +5,8 @@
 #include <algorithm>
 
 #include "TPolyLine.h"
+#include "TVector2.h"
+
 
 #ifdef STANDALONE
 #include "Geometry.h"
@@ -53,10 +55,8 @@ void Geometry::constructFromJson(bool debug) {
   // first set klayer and zlayer according to user parameters
   setLayer(parameters_.layer);
   double zlayer;
-  if (klayer_ == -1) zlayer = 0.;  // entry face required
+  if (klayer_ == -1) zlayer = parameters_.layers_z[0];  // first layer
   else zlayer = parameters_.layers_z[klayer_]; // else offset from the layer z position
-  // to force being at the center for any requested layer
-  //zlayer = 0.; 
   setZlayer(zlayer);
 
   // json format from Marina 06/2016
@@ -235,91 +235,144 @@ void Geometry::constructFromJson(bool debug) {
 void Geometry::constructFromParameters(bool debug) {
   // a tesselation of the plane with polygons
   double a(parameters_.cell_side);
-  int nrows(parameters_.cells_nx);
-  int ncols(parameters_.cells_ny);
   int klayer(parameters_.layer);
   Parameters::Geometry::Type itype(parameters_.type);
 
   if(debug) {
     std::cout << " " << std::endl;
-    std::cout << "Building parametrized geometry : " << nrows << " " << ncols  << std::endl;
-    // itype=0: heaxgonal cells
-    // itype=1: triangular cells
-    if (itype==Parameters::Geometry::Type::Hexagons) std:: cout << "with hexagonal cells " << std::endl;
-    else if (itype==Parameters::Geometry::Type::Triangles) std:: cout << "with triangular cells " << std::endl;
-
-    // itype=0: heaxgonal cells
-    // itype=1: triangular cells
+    std::cout << "Building parametrized geometry :\n";
+    std::cout << "  " << parameters_.eta_min << " < eta < " << parameters_.eta_max << "\n";
+    std::cout << "  " << parameters_.phi_min << " < phi < " << parameters_.phi_max << "\n";
     if (itype==Parameters::Geometry::Type::Hexagons) std:: cout << "with hexagonal cells " << std::endl;
     else if (itype==Parameters::Geometry::Type::Triangles) std:: cout << "with triangular cells " << std::endl;
   }
   
-  setNrows(nrows);
-  setNcols(ncols);
   setLayer(klayer);
   setType(itype);
   a_ = a;
   asqrt3_ = a*std::sqrt(3.);
   asqrt3over2_ = asqrt3_/2.;
   aover2_ = a/2.;
+  a3over2_ = aover2_*3.;
 
   // vertices coordinates wrt cell center
   const int nverticeshexagon=6; // hexagons
   const int nverticestriangle=3; // hexagons  
   const std::array<double, nverticeshexagon> hexagonoffsetx = {{asqrt3over2_,asqrt3over2_,0.,-asqrt3over2_,-asqrt3over2_,0}};
-  const std::array<double,nverticeshexagon> hexagonoffsety = {{-aover2_,aover2_,a_,aover2_,-aover2_,-a_}};
-  const std::array<double,nverticestriangle> uptriangleoffsetx = {{aover2_,0.,-aover2_}};
+  const std::array<double, nverticeshexagon> hexagonoffsety = {{-aover2_,aover2_,a_,aover2_,-aover2_,-a_}};
+  const std::array<double, nverticestriangle> uptriangleoffsetx = {{aover2_,0.,-aover2_}};
   const std::array<double, nverticestriangle> uptriangleoffsety = {{-asqrt3over2_/3.,asqrt3_/3.,-asqrt3over2_/3.}};
   const std::array<double, nverticestriangle> downtriangleoffsetx = {{aover2_,-aover2_,0.}};
   const std::array<double,nverticestriangle> downtriangleoffsety = {{asqrt3over2_/3.,asqrt3over2_/3.,-asqrt3_/3.}};
   int nvertices=nverticeshexagon;
   if (itype==Parameters::Geometry::Type::Triangles) nvertices=nverticestriangle;
   cells_.clear();
-  //cells_.reserve(nrows*ncols);
 
   double zlayer;
-  if (klayer == -1) zlayer = 0.;  // entry face required
+  if (klayer == -1) zlayer =  parameters_.layers_z[0];  // entry face required
   else zlayer = parameters_.layers_z[klayer]; // else offset from the layer z position
-  // to force being at the center for any requested layer
-  //zlayer = 0.; 
   setZlayer(zlayer);
 
-  // I index run along x axis is defined such that hexagons are adjacent by side along this axis
-  // J index runs along the y' axis is rotated by 60deg wrt x axis  
+  // compute x,y positions of the geometry window
+  double z = zlayer; 
+  double theta_min = 2.*std::atan(std::exp(-parameters_.eta_max));
+  double theta_max = 2.*std::atan(std::exp(-parameters_.eta_min));
+  double r_min = z*tan(theta_min);
+  double r_max = z*tan(theta_max);
+  double phi_min = parameters_.phi_min;
+  double phi_max = parameters_.phi_max;
+  std::array<double, 6> xs = {{
+    r_min*cos(parameters_.phi_min),
+    r_min*cos(parameters_.phi_max),
+    r_max*cos(parameters_.phi_max),
+    r_max*cos(parameters_.phi_min),
+    r_min*cos((parameters_.phi_min+parameters_.phi_max)/2.),
+    r_max*cos((parameters_.phi_min+parameters_.phi_max)/2.)
+  }};
+  std::array<double, 6> ys = {{
+    r_min*sin(parameters_.phi_min),
+    r_min*sin(parameters_.phi_max),
+    r_max*sin(parameters_.phi_max),
+    r_max*sin(parameters_.phi_min),
+    r_min*sin((parameters_.phi_min+parameters_.phi_max)/2.),
+    r_max*sin((parameters_.phi_min+parameters_.phi_max)/2.)
+  }};
 
-  // define an offset along the x-axis to fully fill the display pad with cells
-  double xoffset = parameters_.offset*asqrt3_;
-  if (itype==Parameters::Geometry::Type::Triangles) xoffset = parameters_.offset*aover2_;
 
- for (int i=0; i<nrows_;i++) {
-    for (int j=0; j<ncols_;j++) {
+  // x0,y0 is the origine of the tesselation
+  // Which means that the center of cell (i,j)=(0,0) 
+  // will be at (x,y)=(x0,y0)
+  std::array<double, 5> dx;
+  std::array<double, 5> dy;
+  for(unsigned i=0; i<dx.size(); i++) dx[i] = xs[i+1]-xs[0];
+  for(unsigned i=0; i<dy.size(); i++) dy[i] = ys[i+1]-ys[0];
+
+  // partial derivatives of x,y vs i,j
+  double dxdi = 0.;
+  double dxdj = 0.;
+  double dydj = 0.;
+  switch(itype) {
+    case Parameters::Geometry::Type::Hexagons:
+      {
+        dxdi = asqrt3_;
+        dxdj = asqrt3over2_;
+        dydj = a3over2_;
+        break;
+      }
+    case Parameters::Geometry::Type::Triangles:
+      {
+        dxdi = aover2_;
+        dxdj = aover2_;
+        dydj = asqrt3over2_;
+        break;
+      }
+    default:
+      break;
+  };
+  // compute i,j window needed to cover the x,y window
+  std::array<double,6> js;
+  std::array<double,6> is;
+  js[0] = 0;
+  is[0] = 0;
+  for(unsigned i=1; i<js.size(); i++) js[i] = dy[i-1]/dydj;
+  for(unsigned i=1; i<is.size(); i++) is[i] = (dx[i-1]-js[i]*dxdj)/dxdi; 
+
+  int imin = std::round(*(std::min_element(is.begin(), is.end())));
+  int jmin = std::round(*(std::min_element(js.begin(), js.end())));
+  int imax = std::round(*(std::max_element(is.begin(), is.end())));
+  int jmax = std::round(*(std::max_element(js.begin(), js.end())));
+
+  double x_min = std::numeric_limits<double>::max();
+  double x_max = std::numeric_limits<double>::lowest();
+  double y_min = std::numeric_limits<double>::max();
+  double y_max = std::numeric_limits<double>::lowest();
+  // build cells inside the requested window
+  for (int i=imin; i<=imax;i++) {
+    for (int j=jmin; j<=jmax;j++) {
+      double x = xs[0] + i*dxdi + j*dxdj;
+      double y = ys[0] + j*dydj;
+      // up and down triangle barycenters are not aligned
+      if(itype==Parameters::Geometry::Type::Triangles && i%2) y += asqrt3_/6.;
+      double r = std::sqrt(x*x + y*y);
+      double phi = std::acos(x/r);
+      // check if cell is inside boundaries. If not, skip it
+      if(!(r>=r_min && r<=r_max &&
+           TVector2::Phi_mpi_pi(phi-phi_min)>=0 && TVector2::Phi_mpi_pi(phi-phi_max)<=0
+          ))
+      {
+        continue;
+      }
+      if(x>x_max) x_max = x;
+      if(x<x_min) x_min = x;
+      if(y>y_max) y_max = y;
+      if(y<y_min) y_min = y;
+
       if (debug) {
         std::cout << "Creating new cell of type " << static_cast<std::underlying_type<Parameters::Geometry::Type>::type>(itype) << " : " << std::endl;
         std::cout << " mapping coordinates : " << 
           i << " " <<
           j << std::endl;
       }
-      double x=0., y=0.;
-      switch(itype) {
-        case Parameters::Geometry::Type::Hexagons:
-        {
-          x = xoffset + i*asqrt3_ + j*asqrt3over2_;
-          double yprime = j*asqrt3_;
-          // get back to the orthogonal y axis
-          y = yprime*asqrt3over2_/a_;
-          break;
-        }
-        case Parameters::Geometry::Type::Triangles:
-        {
-          x = xoffset + i*aover2_ + j*aover2_;
-          y = j*asqrt3over2_;
-          if (i%2 == 1) y = y + asqrt3_/6.; // cell center is shifted in y for downward triangles
-          break;
-        }
-        default:
-          break;
-      };
-
       TVectorD position(2);
       position(0) = x;
       position(1) = y;
@@ -366,27 +419,50 @@ void Geometry::constructFromParameters(bool debug) {
             break;
         };
         if (debug) {
-          std::cout << "  vertex " << i << " " << 
+          std::cout << "  vertex " << iv << " " << 
             vertices.back()(0) << " " <<
             vertices.back()(1) << std::endl;
         }
       }
 
-      cells_.emplace(
+      auto found = cells_.emplace(
           Cell::id(i, j),
           Cell(std::move(position),std::move(vertices),orientation,i,j)
           );
+      if(!found.second)
+      {
+        std::cout<<"Warning: Cell with indices"<<i<<" "<<j<<" already exists (id="<<Cell::id(i,j)<<")\n";
+        std::cout<<"Warning: This may indicate a bug in the id definition\n";
+      }
 
     }
+  }
+  // build histogram of cells
+  cell_histogram_.reset(new TH2Poly("cells", "cells",
+      x_min>0?x_min*0.9:x_min*1.1, x_max>0?x_max*1.1:x_max*0.9,
+      y_min>0?y_min*0.9:y_min*1.1, y_max>0?y_max*1.1:y_max*0.9
+      ));
+  // take ownership of the histogram
+  cell_histogram_->SetDirectory(0);
+  for (const auto& id_cell : cells_) { 
+    const auto& cell = id_cell.second;
+    std::vector<double> binsx, binsy;
+    for (const auto& vertex : cell.getVertices()) {
+      binsx.emplace_back(vertex(0));
+      binsy.emplace_back(vertex(1));
+    }
+    binsx.emplace_back(cell.getVertices()[0](0));
+    binsy.emplace_back(cell.getVertices()[0](1));
+    cell_histogram_->AddBin(binsx.size(), binsx.data(), binsy.data());
   }
 }
 
 void Geometry::setLayer(int klayer) {
 
   if (klayer<-1 || klayer>=28) {
-    std::cout << "[Geometry::Geometry] error, invalid klayer " << klayer << std::endl;
-    std::cout << "[Geometry::Geometry] setting klayer to entry face" << std::endl;
-    klayer_ = 0;
+    std::stringstream error;
+    error << "[Geometry] error, invalid klayer " << klayer;
+    throw error.str();
   } else if (klayer==-1) klayer_ = 0;
   else klayer_ = klayer;
 
@@ -408,63 +484,34 @@ void Geometry::print() {
 
 }
 
-void Geometry::draw(const Parameters::Display& params, double scale) {
+void Geometry::draw(const Parameters::Display& params) {
 
-  std::array<double, 7> summitx, summity;
+  //cell_histogram_->Draw();
 
-  // for the case of the full geometry from json, offset the display by (0.5,0.5) such that
-  // the center of the module is at the center of the pad
-  double xdisplayoffset=0.;
-  double ydisplayoffset=0.;
-  if (itype_==Parameters::Geometry::Type::External) {
-    xdisplayoffset=params.offset_x;
-    ydisplayoffset=params.offset_y;
-  }
-
-  for (const auto& id_cell : cells_) { 
-    const auto& cell = id_cell.second;
-    unsigned i=0;
-    for (const auto& vertex : cell.getVertices()) {
-      summitx[i]=vertex(0)*scale+xdisplayoffset;
-      summity[i]=vertex(1)*scale+ydisplayoffset;
-      i++;
-    }
-    unsigned nvertices = cell.getVertices().size();
-    summitx[nvertices]=cell.getVertices()[0](0)*scale+xdisplayoffset;
-    summity[nvertices]=cell.getVertices()[0](1)*scale+ydisplayoffset;
-    // Calling Draw makes the current pad take the ownership of the object
-    // So raw pointers are used, and the objects are deleted when the pad is deleted
-    TPolyLine* polygon = new TPolyLine(nvertices+1,summitx.data(),summity.data());
-    polygon->SetFillColor(38);
-    polygon->SetLineColor(4);
-    polygon->SetLineWidth(1);
-    polygon->Draw();
-  } 
+  //std::array<double, 7> summitx, summity;
+  //for (const auto& id_cell : cells_) { 
+    //const auto& cell = id_cell.second;
+    //unsigned i=0;
+    //for (const auto& vertex : cell.getVertices()) {
+      //summitx[i]=vertex(0);
+      //summity[i]=vertex(1);
+      //i++;
+    //}
+    //unsigned nvertices = cell.getVertices().size();
+    //summitx[nvertices] = cell.getVertices()[0](0);
+    //summity[nvertices] = cell.getVertices()[0](1);
+    //// Calling Draw makes the current pad take the ownership of the object
+    //// So raw pointers are used, and the objects are deleted when the pad is deleted
+    //TPolyLine* polygon = new TPolyLine(nvertices+1,summitx.data(),summity.data());
+    //polygon->SetFillColor(38);
+    //polygon->SetLineColor(4);
+    //polygon->SetLineWidth(1);
+    ////polygon->Draw();
+  //} 
 
 }
 
 const TVectorD& Geometry::getPosition(int i, int j) const {
-
-  //TVectorD position(2);
-  //// for parameterised geometries uses indices
-  //// this is error prone (code duplication), do we really gain time?
-  //if (getType()!=Parameters::Geometry::Type::External) { 
-    //if (getType()==Parameters::Geometry::Type::Hexagons) { // hexagons
-      //position(0) = parameters_.offset*asqrt3_+i*asqrt3_+j*asqrt3over2_;
-      //double yprime = j*asqrt3_;
-      //position(1) = yprime*asqrt3over2_/a_;
-    //} else { // triangles
-      //position(0) = parameters_.offset*asqrt3_+i*aover2_+j*aover2_;
-      //position(1) = j*asqrt3over2_;    
-      //if (i%2 == 1) position(1) = position(1) + asqrt3_/6.; // cell center is shifted in y for downward triangles
-    //}
-  //} else { // full geometry
-  //for (const auto& id_cell : cells_) { 
-    //if (cell.getIIndex()!=i) continue; 
-    //if (cell.getJIndex()!=j) continue; 
-    //return cell.getPosition();
-  //}  
-  //throw std::string("Didn't find cell");
   // This will throw an exception if the cell is not found
   return cells_.at(Cell::id(i,j)).getPosition();
 }
@@ -531,15 +578,4 @@ bool Geometry::isInCell(const TVectorD& position, const Cell& cell) const {
   return true;
 }
 
-//int Geometry::getIIndex(const Cell& cell) const {
-
-  //return cell.getIIndex();
-
-//}
-
-//int Geometry::getJIndex(const Cell& cell) const {
-
-  //return cell.getJIndex();
-
-//}
 

@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include "TVectorD.h"
 #include "TMatrixD.h"
+#include "TH2Poly.h"
 #ifdef STANDALONE
 #include "Cell.h"
 #include "Parameters.h"
@@ -21,8 +22,6 @@ class Geometry {
   // a tesselation of the plane with polygonal cells
   // by default the plane is at z=0 but can be shifted to a z position that
   // corresponds to a layer position from TP geometry 
-  // itype=0: hexagonal cells
-  // itype=1: triangular cells
 
   public:
 
@@ -48,11 +47,7 @@ class Geometry {
     //vect<Cell> getSecondNeighbours (int i); // not yet implemented
 
     // getters
-    int getNumberOfRows() const {return nrows_;} // parameterized case
-    int getNumberOfCols() const {return ncols_;} // parameterized case
     const std::unordered_map<uint32_t, Cell>& getCells() const {return cells_;}
-    //int getIIndex(const Cell& cell) const;
-    //int getJIndex(const Cell& cell) const;
     int getLayer() const {return klayer_;}
     double getZlayer() const {return zlayer_;}
     Parameters::Geometry::Type getType() const {return itype_;} 
@@ -60,31 +55,31 @@ class Geometry {
     double a() const {return a_;}
     double asqrt3() const {return asqrt3_;}
     double aover2() const {return aover2_;}
+    double a3over2() const {return a3over2_;}
     double asqrt3over2() const {return asqrt3over2_;}
 
-    void draw(const Parameters::Display& params, double scale=0.1);
+    const std::unique_ptr<TH2Poly>& cellHistogram() const {return cell_histogram_;}
+    void draw(const Parameters::Display& params);
     void print();
 
   private:
 
-    //void setCells(std::vector<Cell *> cells) {cells_ = cells;}
-    void setNrows(int nrows) {nrows_ = nrows;}
-    void setNcols(int ncols) {ncols_ = ncols;}
     void setLayer(int klayer);
     void setZlayer(double zlayer) {zlayer_ = zlayer;}
     void setType (Parameters::Geometry::Type itype) {itype_=itype;}
 
     std::unordered_map<uint32_t, Cell> cells_;
-    int nrows_;
-    int ncols_;
     int klayer_;
     double zlayer_;
     Parameters::Geometry::Type itype_; // cell type
     double a_;
     double asqrt3_;
     double aover2_;
+    double a3over2_;
     double asqrt3over2_;
     const Parameters::Geometry& parameters_;
+
+    std::unique_ptr<TH2Poly> cell_histogram_;
 
 };
 

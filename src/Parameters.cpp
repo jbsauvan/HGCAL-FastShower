@@ -30,9 +30,10 @@ Geometry():
   layer(-1),
   layers_z(0),
   cell_side(0),
-  offset(0),
-  cells_nx(0),
-  cells_ny(0),
+  eta_min(0.),
+  eta_max(0.),
+  phi_min(0.),
+  phi_max(0.),
   file("")
 {
 }
@@ -58,18 +59,14 @@ Generation():
   sampling(0.),
   noise(false),
   noise_sigma(0.),
-  incident_x(0.),
-  incident_y(0.),
-  incident_eta(0.)
+  incident_eta(0.),
+  incident_phi(0.)
 {
 }
 
 Parameters::Display::
 Display():
-  events(0),
-  size(0),
-  offset_x(0.),
-  offset_y(0.)
+  events(0)
 {
 }
 
@@ -119,9 +116,10 @@ fillGeometry(const python::dict& dict)
   if(geometry_.type!=Geometry::Type::External)
   {
     geometry_.cell_side = python::extract<double>(dict["geometry_cell_side"]);
-    geometry_.offset = python::extract<int>(dict["geometry_offset"]);
-    geometry_.cells_nx = python::extract<int>(dict["geometry_cells_nx"]);
-    geometry_.cells_ny = python::extract<int>(dict["geometry_cells_ny"]);
+    geometry_.eta_min = python::extract<double>(dict["geometry_eta_min"]);
+    geometry_.eta_max = python::extract<double>(dict["geometry_eta_max"]);
+    geometry_.phi_min = python::extract<double>(dict["geometry_phi_min"]);
+    geometry_.phi_max = python::extract<double>(dict["geometry_phi_max"]);
   }
   // Read parameters for external json geometries
   else
@@ -158,9 +156,8 @@ fillGeneration(const python::dict& dict)
   generation_.sampling = python::extract<double>(dict["generation_sampling"]);
   generation_.noise = python::extract<bool>(dict["generation_noise"]);
   generation_.noise_sigma = python::extract<double>(dict["generation_noise_sigma"]);
-  generation_.incident_x = python::extract<double>(dict["generation_incident_x"]);
-  generation_.incident_y = python::extract<double>(dict["generation_incident_y"]);
   generation_.incident_eta = python::extract<double>(dict["generation_incident_eta"]);
+  generation_.incident_phi = python::extract<double>(dict["generation_incident_phi"]);
 }
 
 void 
@@ -168,9 +165,6 @@ Parameters::
 fillDisplay(const python::dict& dict)
 {
   display_.events = python::extract<int>(dict["display_events"]);
-  display_.size = python::extract<int>(dict["display_size"]);
-  display_.offset_x = python::extract<double>(dict["display_offset_x"]);
-  display_.offset_y = python::extract<double>(dict["display_offset_y"]);
 }
 
 
@@ -187,9 +181,7 @@ print() const
   std::cout<<"|- Geometry\n";
   std::cout<<"|-- Type = "<<static_cast<std::underlying_type<Geometry::Type>::type>(geometry_.type)<<"\n";
   std::cout<<"|-- SideLength = "<<geometry_.cell_side<<"\n";
-  std::cout<<"|-- Cells_NX = "<<geometry_.cells_nx<<"\n";
-  std::cout<<"|-- Cells_NY = "<<geometry_.cells_ny<<"\n";
-  std::cout<<"|-- Offset = "<<geometry_.offset<<"\n";
+  std::cout<<"|-- eta|phi window = ("<<geometry_.eta_min<<","<<geometry_.eta_max<<"|"<<geometry_.phi_min<<","<<geometry_.phi_max<<")\n";
   std::cout<<"|-- Layer = "<<geometry_.layer<<"\n";
   std::cout<<"|-- Layers z = [";
   for(const auto& z : geometry_.layers_z)
@@ -229,10 +221,7 @@ print() const
   std::cout<<"|-- Sampling = "<<generation_.sampling<<"\n";
   std::cout<<"|-- Noise = "<<generation_.noise<<"\n";
   std::cout<<"|-- Noise sigma = "<<generation_.noise_sigma<<"\n";
-  std::cout<<"|-- Position = ("<<generation_.incident_x<<" "<<generation_.incident_y<<")\n";
-  std::cout<<"|-- Angle (eta) = "<<generation_.incident_eta<<"\n";
+  std::cout<<"|-- Direction = ("<<generation_.incident_eta<<" "<<generation_.incident_phi<<")\n";
   std::cout<<"|- Display\n";
   std::cout<<"|-- Events = "<<display_.events<<"\n";
-  std::cout<<"|-- Size = "<<display_.size<<"\n";
-  std::cout<<"|-- Offset = "<<display_.offset_x<<" "<<display_.offset_y<<"\n";
 }

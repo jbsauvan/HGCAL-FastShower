@@ -9,7 +9,7 @@ class Cell {
   // an polygonal cell
 
   public:
-    static uint32_t id(int16_t i, int16_t j);
+    static uint32_t id(uint16_t i, uint16_t j);
 
   private:
     Cell() {} // don't use default constructor

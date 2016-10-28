@@ -27,9 +27,10 @@ class Parameters
       std::vector<double> layers_z;
       // internal infinite geometries
       double cell_side;
-      int offset;
-      int cells_nx;
-      int cells_ny;
+      double eta_min;
+      double eta_max;
+      double phi_min;
+      double phi_max;
       // external geometries
       std::string file;
     };
@@ -54,17 +55,13 @@ class Parameters
       double sampling;
       bool noise;
       double noise_sigma;
-      double incident_x;
-      double incident_y;
       double incident_eta;
+      double incident_phi;
     };
     struct Display
     {
       Display();
       unsigned events;
-      int size;
-      double offset_x;
-      double offset_y;
     };
 
   public:

@@ -39,17 +39,7 @@ void Generator::simulate() {
   double energygenincells=0.;
   double energyrec=0.;
 
-  // incident direction
-  // coordinate of origin of simulated geometry/module in CMS frame is given by etainc,phiinc and z=320.;
-  // set phiinc to 0., can be updated when we will have seval modules
-  double phiinc = 0.;
-  double thetainc = 2.*std::atan(std::exp(-parameters_.generation().incident_eta));
-  double z0 = 320.; // z ccordinate of first plane
-  double rt = z0*tan(thetainc); 
-  TVectorD direction(3);  
-  direction(0) = rt*cos(phiinc);
-  direction(1) = rt*sin(phiinc);
-  direction(2) = z0;
+
 
   TStopwatch t;
   t.Start();   
@@ -61,14 +51,17 @@ void Generator::simulate() {
   }
   if(debug) geometry_.print();
 
-  // draw the geometry
-  std::string title;
-  title = "Layer ";
-  title = title + std::to_string(parameters_.geometry().layer);
-  // FIXME: where is used this canvas?
-  TCanvas c1(title.c_str(),title.c_str(),40,40,700,700);
-  double scale=1.;
-  geometry_.draw(parameters_.display(), scale);
+  // The output file has the ownership
+  TH2Poly* geometry_histo = (TH2Poly*)geometry_.cellHistogram()->Clone("geometry");
+  geometry_histo->Write();
+
+  // incident direction
+  double phiinc = parameters_.generation().incident_phi;
+  double thetainc = 2.*std::atan(std::exp(-parameters_.generation().incident_eta));
+  double r = geometry_.getZlayer()*tan(thetainc); 
+  double incident_x = r*cos(phiinc);
+  double incident_y = r*sin(phiinc);
+
 
   ShowerParametrization aShowerParametrization(parameters_.shower());
 
@@ -113,14 +106,11 @@ void Generator::simulate() {
   if (debug)
   {
     std::cout << " " << std::endl;
-    std::cout << "incident position: " <<"("<<
-      parameters_.generation().incident_x<<","<<
-      parameters_.generation().incident_y<<")"<<std::endl; 
+    std::cout << "incident direction: " <<"("<<
+      parameters_.generation().incident_eta<<","<<
+      parameters_.generation().incident_phi<<")"<<std::endl; 
     std::cout << "incident energy: " <<parameters_.generation().energy<<" GeV"<<std::endl; 
     std::cout << "requested layer: " <<parameters_.geometry().layer<<std::endl; 
-    std::cout<< "cell grid: " <<"("<<
-      parameters_.geometry().cells_nx<<","<<
-      parameters_.geometry().cells_ny<<")"<< std::endl;
     std::cout<< "hexagon side: " <<parameters_.geometry().cell_side<< std::endl;
 
     std::cout<< "moliere radius: " << aShowerParametrization.getMoliereRadius()  << " cm" << std::endl;
@@ -143,9 +133,9 @@ void Generator::simulate() {
     Event event(0, iev); // default run number =0
 
     event.setGenerated(parameters_.generation().energy, 
-        parameters_.generation().incident_x, 
-        parameters_.generation().incident_y,
-        parameters_.generation().incident_eta);
+        parameters_.generation().incident_eta,
+        parameters_.generation().incident_phi
+        );
 
     energygen = 0.;
     energygenincells = 0.;
@@ -186,24 +176,13 @@ void Generator::simulate() {
         std::endl;
     }
 
-    // incident position
-    double xinccor = parameters_.generation().incident_x;
-    //double xinccor = xinc - asqrt3over2 + asqrt3*gun->Rndm();
-    if (debug) std::cout << "shooting position = ("<< xinccor <<","<<parameters_.generation().incident_y<<")"<<std::endl;
 
     for (int i=0; i<nhits; i++) {
 
-      double r = gun_.Exp(r0); // exponential exp(-r/r0)
-      double phi = gun_.Rndm()*TMath::TwoPi();
-      double x = r*cos(phi) + xinccor;
-      double y = r*sin(phi) + parameters_.generation().incident_y;
-
-      // add here translation for the requested layer
-      double z = geometry_.getZlayer();
-      if (z!=0.) {
-        x = x + z*direction(0)/direction(2);
-        y = y + z*direction(1)/direction(2);
-      }
+      double r_shower = gun_.Exp(r0); // exponential exp(-r/r0)
+      double phi_shower = gun_.Rndm()*TMath::TwoPi();
+      double x = r_shower*cos(phi_shower) + incident_x;
+      double y = r_shower*sin(phi_shower) + incident_y;
 
       TVectorD pos(2);
       pos(0)=x;
@@ -247,8 +226,8 @@ void Generator::simulate() {
       }	
 
      // fill shower histograms
-      hTransverseProfile.Fill(r,denrj);
-      hPhiProfile.Fill(phi,denrj);
+      hTransverseProfile.Fill(r_shower,denrj);
+      hPhiProfile.Fill(phi_shower,denrj);
       hSpotEnergy.Fill(denrj);
 
     }
@@ -295,16 +274,16 @@ void Generator::simulate() {
   std::cout << std::endl;
 
   // Exporting histograms to file
-  hEnergyGen.Write();
-  hTransverseProfile.Write();
-  hPhiProfile.Write();
-  hSpotEnergy.Write();
-  hCellEnergyDist.Write();
-  hEnergySum.Write();
+  //hEnergyGen.Write();
+  //hTransverseProfile.Write();
+  //hPhiProfile.Write();
+  //hSpotEnergy.Write();
+  //hCellEnergyDist.Write();
+  //hEnergySum.Write();
 
-  for (const auto& id_hist : hCellEnergyMap) { 
-    id_hist.second.Write();
-  }  
+  //for (const auto& id_hist : hCellEnergyMap) { 
+    //id_hist.second.Write();
+  //}  
 
 
   t.Stop();
@@ -323,15 +302,9 @@ void Generator::simulate() {
 
 
 std::unique_ptr<TCanvas> Generator::display(const std::unordered_map<uint32_t,TH1F>& hCellEnergyEvtMap, int ievt) {
-  double xdisplayoffset=0.;
-  double ydisplayoffset=0.;
-  if (parameters_.geometry().type==Parameters::Geometry::Type::External) {
-    xdisplayoffset=parameters_.display().offset_x;
-    ydisplayoffset=parameters_.display().offset_y;
-  }
 
   // FIXME: build titles without using char[]
-  std::string title1, title2, title3, title4;
+  std::string title1, title2, title4;
   char str[20];
   if (ievt == 0) title1 = "Mean energy profile in layer ";
   else title1 = "Event " + std::to_string(ievt) + " energy profile in layer ";
@@ -341,15 +314,6 @@ std::unique_ptr<TCanvas> Generator::display(const std::unordered_map<uint32_t,TH
   std::string string=str;
   title2 = title2 + string;
   title2 = title2 + " GeV", 
-         title3 = "position = (";
-  sprintf(str,"%3.1f",parameters_.generation().incident_x);
-  string=str;
-  title3 = title3 + string;
-  title3 = title3 + ",";
-  sprintf(str,"%3.1f",parameters_.generation().incident_y);
-  string=str;  
-  title3 = title3 + string;
-  title3 = title3 + ") cm";
   title4 = "eta = ";
   sprintf(str,"%3.1f",parameters_.generation().incident_eta);
   string=str;   
@@ -357,60 +321,48 @@ std::unique_ptr<TCanvas> Generator::display(const std::unordered_map<uint32_t,TH
   std::string title = title1 + ", ";
   title = title + title2;
   title = title + ", ";
-  title = title + title3;
-  title = title + ", ";
   title = title + title4;
 
-  std::unique_ptr<TCanvas> c1(new TCanvas(title.c_str(),title.c_str(),40,40,700,700));
-  double scale=1./(parameters_.display().size*geometry_.asqrt3());
-  if (parameters_.geometry().type==Parameters::Geometry::Type::Triangles) scale=1./(parameters_.display().size*geometry_.aover2());
-  if (parameters_.geometry().type==Parameters::Geometry::Type::External) scale=1./(parameters_.display().size*0.22727*sqrt(3.)); // FIXME: hard coded a size for json geometry, to be improved
-  //double textsize=0.02;
-  geometry_.draw(parameters_.display(), scale);
-
+  std::unique_ptr<TCanvas> c1(new TCanvas(title.c_str(),title.c_str(),700,700));
+  TH2Poly* energy_map = (TH2Poly*)geometry_.cellHistogram()->Clone(std::string("test"+std::to_string(ievt)).c_str());
+  //geometry_.draw(parameters_.display());
 
   for (const auto& id_hist : hCellEnergyEvtMap) {
     const auto& cell = geometry_.getCells().at(id_hist.first);
     // print mean energies
     double enrj = id_hist.second.GetMean();
-    if (enrj<0.1) continue;
+    energy_map->Fill(cell.getPosition()(0), cell.getPosition()(1), enrj);
     // FIXME: no sprintf
     sprintf(str,"%4.1f",id_hist.second.GetMean());
-    //if (enrj<0.01) continue;
-    //int ires = sprintf(str,"%5.2f",(ic->second)->GetMean());
     // Calling Draw makes the current pad take the ownership of the object
     // So raw pointers are used, and the objects are deleted when the pad is deleted (here c1)
-    TText* t = new TText(cell.getPosition()(0)*scale+xdisplayoffset,
-        cell.getPosition()(1)*scale+ydisplayoffset,
-        str);
-    t->SetTextAlign(22);
-    t->SetTextColor(kBlack);
-    if (enrj>=1.) t->SetTextColor(kRed);
-    t->SetTextFont(43);
-    t->SetTextSize(20*11/parameters_.display().size);
-    //t->SetTextSize(0.02);
-    t->Draw();
+    //TText* t = new TText(cell.getPosition()(0)*scale+xdisplayoffset,
+        //cell.getPosition()(1)*scale+ydisplayoffset,
+        //str);
+    //t->SetTextAlign(22);
+    //t->SetTextColor(kBlack);
+    //if (enrj>=1.) t->SetTextColor(kRed);
+    //t->SetTextFont(43);
+    //t->SetTextSize(20*11/parameters_.display().size);
+    ////t->SetTextSize(0.02);
+    //t->Draw();
   } 
-  TPaveText* leg1 = new TPaveText(.05,.91,.35,.97);
+
+  energy_map->Draw("colz");
+
+  TPaveText* leg1 = new TPaveText(.05,.91,.35,.97, "NDC");
   leg1->AddText(title1.c_str());
   leg1->SetFillColor(kWhite);
   leg1->SetTextSize(0.02);
   leg1->Draw();
-  TPaveText* leg2 = new TPaveText(.045,.85,.18,.88);
+  TPaveText* leg2 = new TPaveText(.045,.85,.18,.88, "NDC");
   leg2->AddText(title2.c_str());
   leg2->SetFillColor(kWhite);
   leg2->SetTextSize(0.02);
   leg2->SetTextColor(kBlue);
   leg2->SetBorderSize(0.0);
   leg2->Draw();
-  TPaveText* leg3 = new TPaveText(.06,.79,.25,.84);
-  leg3->AddText(title3.c_str());
-  leg3->SetFillColor(kWhite);
-  leg3->SetTextSize(0.02);
-  leg3->SetTextColor(kBlue);
-  leg3->SetBorderSize(0.0);
-  leg3->Draw();
-  TPaveText* leg4 = new TPaveText(.05,.76,.13,.79);
+  TPaveText* leg4 = new TPaveText(.045,.79,.25,.84, "NDC");
   leg4->AddText(title4.c_str());
   leg4->SetFillColor(kWhite);
   leg4->SetTextSize(0.02);

@@ -8,7 +8,7 @@
 #endif
 
 
-uint32_t Cell::id(int16_t i, int16_t j)
+uint32_t Cell::id(uint16_t i, uint16_t j)
 {
   uint32_t id = 0;
   id |= i;
