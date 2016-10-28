@@ -17,12 +17,8 @@ generation_noise = True
 # noise in mips
 generation_noise_sigma = 0.3
 
-# Incident position and angle
-# below we shoot at center of the (3,4) cell in the parameterised triangular geometry
-incident_i = 3
-incident_j = 4
-generation_incident_x = incident_i*a/2.+incident_j*a/2.
-generation_incident_y = incident_j*a*m.sqrt(3.)+(incident_i+1)%2*a*m.sqrt(3.)/6.
+# Incident direction
 generation_incident_eta = 2.
+generation_incident_phi = 0.
 
 

@@ -55,9 +55,8 @@ class Parameters
       double sampling;
       bool noise;
       double noise_sigma;
-      double incident_x;
-      double incident_y;
       double incident_eta;
+      double incident_phi;
     };
     struct Display
     {

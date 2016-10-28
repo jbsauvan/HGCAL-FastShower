@@ -1,7 +1,7 @@
 
 import math as m
 
-geometry_type = 'Triangles'
+geometry_type = 'Hexagons'
 # layer:
 # if between 0 and 27, the generated energy is weighted according to the layer profile (elayers[i])
 # the incident position is also shifted according to layer z position (zlayers[i]) and incident direction (etainc)

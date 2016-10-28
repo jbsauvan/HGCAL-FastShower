@@ -59,9 +59,8 @@ Generation():
   sampling(0.),
   noise(false),
   noise_sigma(0.),
-  incident_x(0.),
-  incident_y(0.),
-  incident_eta(0.)
+  incident_eta(0.),
+  incident_phi(0.)
 {
 }
 
@@ -160,9 +159,8 @@ fillGeneration(const python::dict& dict)
   generation_.sampling = python::extract<double>(dict["generation_sampling"]);
   generation_.noise = python::extract<bool>(dict["generation_noise"]);
   generation_.noise_sigma = python::extract<double>(dict["generation_noise_sigma"]);
-  generation_.incident_x = python::extract<double>(dict["generation_incident_x"]);
-  generation_.incident_y = python::extract<double>(dict["generation_incident_y"]);
   generation_.incident_eta = python::extract<double>(dict["generation_incident_eta"]);
+  generation_.incident_phi = python::extract<double>(dict["generation_incident_phi"]);
 }
 
 void 
@@ -229,8 +227,7 @@ print() const
   std::cout<<"|-- Sampling = "<<generation_.sampling<<"\n";
   std::cout<<"|-- Noise = "<<generation_.noise<<"\n";
   std::cout<<"|-- Noise sigma = "<<generation_.noise_sigma<<"\n";
-  std::cout<<"|-- Position = ("<<generation_.incident_x<<" "<<generation_.incident_y<<")\n";
-  std::cout<<"|-- Angle (eta) = "<<generation_.incident_eta<<"\n";
+  std::cout<<"|-- Direction = ("<<generation_.incident_eta<<" "<<generation_.incident_phi<<")\n";
   std::cout<<"|- Display\n";
   std::cout<<"|-- Events = "<<display_.events<<"\n";
   std::cout<<"|-- Size = "<<display_.size<<"\n";

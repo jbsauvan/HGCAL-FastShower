@@ -33,8 +33,7 @@ class OutputService
     unsigned event_;
     float gen_energy_;
     float gen_eta_;
-    float gen_x_;
-    float gen_y_;
+    float gen_phi_;
     unsigned cell_n_;
     std::vector<float> cell_energy_;
     std::vector<float> cell_x_;
