@@ -79,10 +79,6 @@ class Geometry {
     double asqrt3over2_;
     const Parameters::Geometry& parameters_;
 
-    // FIXME
-    // This is supposed to be written into a root file
-    // So it is currently not owned by the geometry
-    // But maybe better to have a unique_ptr + SetDirectory(0)
     std::unique_ptr<TH2Poly> cell_histogram_;
 
 };
