@@ -30,9 +30,10 @@ Geometry():
   layer(-1),
   layers_z(0),
   cell_side(0),
-  offset(0),
-  cells_nx(0),
-  cells_ny(0),
+  eta_min(0.),
+  eta_max(0.),
+  phi_min(0.),
+  phi_max(0.),
   file("")
 {
 }
@@ -119,9 +120,10 @@ fillGeometry(const python::dict& dict)
   if(geometry_.type!=Geometry::Type::External)
   {
     geometry_.cell_side = python::extract<double>(dict["geometry_cell_side"]);
-    geometry_.offset = python::extract<int>(dict["geometry_offset"]);
-    geometry_.cells_nx = python::extract<int>(dict["geometry_cells_nx"]);
-    geometry_.cells_ny = python::extract<int>(dict["geometry_cells_ny"]);
+    geometry_.eta_min = python::extract<double>(dict["geometry_eta_min"]);
+    geometry_.eta_max = python::extract<double>(dict["geometry_eta_max"]);
+    geometry_.phi_min = python::extract<double>(dict["geometry_phi_min"]);
+    geometry_.phi_max = python::extract<double>(dict["geometry_phi_max"]);
   }
   // Read parameters for external json geometries
   else
@@ -187,9 +189,7 @@ print() const
   std::cout<<"|- Geometry\n";
   std::cout<<"|-- Type = "<<static_cast<std::underlying_type<Geometry::Type>::type>(geometry_.type)<<"\n";
   std::cout<<"|-- SideLength = "<<geometry_.cell_side<<"\n";
-  std::cout<<"|-- Cells_NX = "<<geometry_.cells_nx<<"\n";
-  std::cout<<"|-- Cells_NY = "<<geometry_.cells_ny<<"\n";
-  std::cout<<"|-- Offset = "<<geometry_.offset<<"\n";
+  std::cout<<"|-- eta|phi window = ("<<geometry_.eta_min<<","<<geometry_.eta_max<<"|"<<geometry_.phi_min<<","<<geometry_.phi_max<<")\n";
   std::cout<<"|-- Layer = "<<geometry_.layer<<"\n";
   std::cout<<"|-- Layers z = [";
   for(const auto& z : geometry_.layers_z)

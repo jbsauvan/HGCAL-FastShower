@@ -27,9 +27,10 @@ class Parameters
       std::vector<double> layers_z;
       // internal infinite geometries
       double cell_side;
-      int offset;
-      int cells_nx;
-      int cells_ny;
+      double eta_min;
+      double eta_max;
+      double phi_min;
+      double phi_max;
       // external geometries
       std::string file;
     };

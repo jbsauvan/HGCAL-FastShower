@@ -42,6 +42,7 @@ void Generator::simulate() {
   // incident direction
   // coordinate of origin of simulated geometry/module in CMS frame is given by etainc,phiinc and z=320.;
   // set phiinc to 0., can be updated when we will have seval modules
+  // FIXME: remove hardcoded phi and z0
   double phiinc = 0.;
   double thetainc = 2.*std::atan(std::exp(-parameters_.generation().incident_eta));
   double z0 = 320.; // z ccordinate of first plane
@@ -65,10 +66,7 @@ void Generator::simulate() {
   std::string title;
   title = "Layer ";
   title = title + std::to_string(parameters_.geometry().layer);
-  // FIXME: where is used this canvas?
-  TCanvas c1(title.c_str(),title.c_str(),40,40,700,700);
-  double scale=1.;
-  geometry_.draw(parameters_.display(), scale);
+
 
   ShowerParametrization aShowerParametrization(parameters_.shower());
 
@@ -118,9 +116,6 @@ void Generator::simulate() {
       parameters_.generation().incident_y<<")"<<std::endl; 
     std::cout << "incident energy: " <<parameters_.generation().energy<<" GeV"<<std::endl; 
     std::cout << "requested layer: " <<parameters_.geometry().layer<<std::endl; 
-    std::cout<< "cell grid: " <<"("<<
-      parameters_.geometry().cells_nx<<","<<
-      parameters_.geometry().cells_ny<<")"<< std::endl;
     std::cout<< "hexagon side: " <<parameters_.geometry().cell_side<< std::endl;
 
     std::cout<< "moliere radius: " << aShowerParametrization.getMoliereRadius()  << " cm" << std::endl;
@@ -283,7 +278,7 @@ void Generator::simulate() {
         hCellEnergyEvtMap.at(id_energy.first).Reset();
         hCellEnergyEvtMap.at(id_energy.first).Fill(id_energy.second);
       }
-      canvas.emplace_back(display(hCellEnergyEvtMap,iev));    
+      //canvas.emplace_back(display(hCellEnergyEvtMap,iev));    
 
     }
     output_.fillTree(event, geometry_);
@@ -295,16 +290,16 @@ void Generator::simulate() {
   std::cout << std::endl;
 
   // Exporting histograms to file
-  hEnergyGen.Write();
-  hTransverseProfile.Write();
-  hPhiProfile.Write();
-  hSpotEnergy.Write();
-  hCellEnergyDist.Write();
-  hEnergySum.Write();
+  //hEnergyGen.Write();
+  //hTransverseProfile.Write();
+  //hPhiProfile.Write();
+  //hSpotEnergy.Write();
+  //hCellEnergyDist.Write();
+  //hEnergySum.Write();
 
-  for (const auto& id_hist : hCellEnergyMap) { 
-    id_hist.second.Write();
-  }  
+  //for (const auto& id_hist : hCellEnergyMap) { 
+    //id_hist.second.Write();
+  //}  
 
 
   t.Stop();
@@ -361,12 +356,12 @@ std::unique_ptr<TCanvas> Generator::display(const std::unordered_map<uint32_t,TH
   title = title + ", ";
   title = title + title4;
 
-  std::unique_ptr<TCanvas> c1(new TCanvas(title.c_str(),title.c_str(),40,40,700,700));
+  std::unique_ptr<TCanvas> c1(new TCanvas(title.c_str(),title.c_str(),700,700));
   double scale=1./(parameters_.display().size*geometry_.asqrt3());
   if (parameters_.geometry().type==Parameters::Geometry::Type::Triangles) scale=1./(parameters_.display().size*geometry_.aover2());
   if (parameters_.geometry().type==Parameters::Geometry::Type::External) scale=1./(parameters_.display().size*0.22727*sqrt(3.)); // FIXME: hard coded a size for json geometry, to be improved
   //double textsize=0.02;
-  geometry_.draw(parameters_.display(), scale);
+  geometry_.draw(parameters_.display());
 
 
   for (const auto& id_hist : hCellEnergyEvtMap) {
