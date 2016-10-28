@@ -288,17 +288,21 @@ void Geometry::constructFromParameters(bool debug) {
   double r_max = z*tan(theta_max);
   double phi_min = parameters_.phi_min;
   double phi_max = parameters_.phi_max;
-  std::array<double, 4> xs = {
+  std::array<double, 6> xs = {
     r_min*cos(parameters_.phi_min),
     r_min*cos(parameters_.phi_max),
     r_max*cos(parameters_.phi_max),
-    r_max*cos(parameters_.phi_min)
+    r_max*cos(parameters_.phi_min),
+    r_min*cos((parameters_.phi_min+parameters_.phi_max)/2.),
+    r_max*cos((parameters_.phi_min+parameters_.phi_max)/2.)
   };
-  std::array<double, 4> ys = {
+  std::array<double, 6> ys = {
     r_min*sin(parameters_.phi_min),
     r_min*sin(parameters_.phi_max),
     r_max*sin(parameters_.phi_max),
-    r_max*sin(parameters_.phi_min)
+    r_max*sin(parameters_.phi_min),
+    r_min*sin((parameters_.phi_min+parameters_.phi_max)/2.),
+    r_max*sin((parameters_.phi_min+parameters_.phi_max)/2.)
   };
 
 
@@ -306,12 +310,20 @@ void Geometry::constructFromParameters(bool debug) {
   // x0,y0 is the origine of the tesselation
   // Which means that the center of cell (i,j)=(0,0) 
   // will be at (x,y)=(x0,y0)
-  double dx1 = xs[1]-xs[0];
-  double dy1 = ys[1]-ys[0];
-  double dx2 = xs[2]-xs[0];
-  double dy2 = ys[2]-ys[0];
-  double dx3 = xs[3]-xs[0];
-  double dy3 = ys[3]-ys[0];
+  std::array<double, 5> dx = {
+    xs[1]-xs[0],
+    xs[2]-xs[0],
+    xs[3]-xs[0],
+    xs[4]-xs[0],
+    xs[5]-xs[0]
+  };
+  std::array<double, 5> dy = {
+    ys[1]-ys[0],
+    ys[2]-ys[0],
+    ys[3]-ys[0],
+    ys[4]-ys[0],
+    ys[5]-ys[0]
+  };
 
   // partial derivatives of x,y vs i,j
   double dxdi = 0.;
@@ -336,8 +348,22 @@ void Geometry::constructFromParameters(bool debug) {
       break;
   };
   // compute i,j window needed to cover the x,y window
-  std::array<double,4> js = {0., dy1/dydj, dy2/dydj, dy3/dydj};
-  std::array<double,4> is = {0., (dx1-js[1]*dxdj)/dxdi, (dx2-js[2]*dxdj)/dxdi, (dx3-js[3]*dxdj)/dxdi};
+  std::array<double,6> js = {
+    0.,
+    dy[0]/dydj,
+    dy[1]/dydj,
+    dy[2]/dydj,
+    dy[3]/dydj,
+    dy[4]/dydj
+  };
+  std::array<double,6> is = {
+    0.,
+    (dx[0]-js[1]*dxdj)/dxdi,
+    (dx[1]-js[2]*dxdj)/dxdi,
+    (dx[2]-js[3]*dxdj)/dxdi,
+    (dx[3]-js[4]*dxdj)/dxdi,
+    (dx[4]-js[5]*dxdj)/dxdi
+  };
   int imin = std::round(*(std::min_element(is.begin(), is.end())));
   int jmin = std::round(*(std::min_element(js.begin(), js.end())));
   int imax = std::round(*(std::max_element(is.begin(), is.end())));
@@ -348,8 +374,8 @@ void Geometry::constructFromParameters(bool debug) {
   double y_min = std::numeric_limits<double>::max();
   double y_max = std::numeric_limits<double>::lowest();
   // build cells inside the requested window
-  for (int i=imin; i<imax;i++) {
-    for (int j=jmin; j<jmax;j++) {
+  for (int i=imin; i<=imax;i++) {
+    for (int j=jmin; j<=jmax;j++) {
       double x = xs[0] + i*dxdi + j*dxdj;
       double y = ys[0] + j*dydj;
       // up and down triangle barycenters are not aligned

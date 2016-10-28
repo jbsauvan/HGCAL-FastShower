@@ -271,7 +271,7 @@ void Generator::simulate() {
         hCellEnergyEvtMap.at(id_energy.first).Reset();
         hCellEnergyEvtMap.at(id_energy.first).Fill(id_energy.second);
       }
-      //canvas.emplace_back(display(hCellEnergyEvtMap,iev));    
+      canvas.emplace_back(display(hCellEnergyEvtMap,iev));    
 
     }
     output_.fillTree(event, geometry_);

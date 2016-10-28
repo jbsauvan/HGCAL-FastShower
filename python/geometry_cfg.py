@@ -1,7 +1,7 @@
 
 import math as m
 
-geometry_type = 'Hexagons'
+geometry_type = 'Triangles'
 # layer:
 # if between 0 and 27, the generated energy is weighted according to the layer profile (elayers[i])
 # the incident position is also shifted according to layer z position (zlayers[i]) and incident direction (etainc)
@@ -23,9 +23,9 @@ geometry_cells_ny = 31
 # offset <0 starting cell along x, this is to fully fill the display window
 geometry_offset = -9
 
-geometry_eta_min = 1.8
-geometry_eta_max = 2.5
-geometry_phi_min = -m.pi/12. # -15 deg 
-geometry_phi_max = m.pi/12. # +15 deg 
+geometry_eta_min = 1.9
+geometry_eta_max = 2.1
+geometry_phi_min = -m.pi/24. # -7.5 deg 
+geometry_phi_max = m.pi/24. # +7.5 deg 
 #
 geometry_file = 'data/AC_11.json'
