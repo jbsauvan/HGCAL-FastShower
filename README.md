@@ -1,4 +1,4 @@
-# Fast shower integration tool for HGCAL geometry studies.
+# Fast shower integration tool for HGCAL geometry studies
 
 
 ## Installation
@@ -64,7 +64,7 @@ The list of parameters in each group is as follows.
 | ------ | ------ | ------------ |  
 | `geometry_type` | `string` (`Hexagons`, `Triangles` or `External`) | Type of the geometry |  
 | `geometry_file` | `string` | Input JSON file for external geometries (`geometry_type = External`) |  
-| `geometry_layer` | `int` $\in [-1,28]$ | Index of the simulated layer. `-1` will sum all the layers |  
+| `geometry_layer` | `int in [-1,28]` | Index of the simulated layer. `-1` will sum all the layers |  
 |  `geometry_layers_z` | `list(float)` |  z position of the layers (cm) |  
 | `geometry_cell_side` | `float` | Size parameter of the cells (cm) (`geometry_type != External`) |
 | `geometry_eta/phi_min/max` | `float` | Simulated (eta,phi) window | 
@@ -94,6 +94,10 @@ The list of parameters in each group is as follows.
 | `shower_transverse_parameters` | `dict(float)`  | Parameters for the transverse profile (parabolic function)  |   
 | `shower_longitudinal_parameters` | `dict(float)`  | Parameters for the longitudinal profile |  
 
+#### Display parameters
 
+| Name | Values | Definition |  
+| ------ | ------ | ------------ |  
+| `display_events` | `int` |  Number of events to display |  
 
 
