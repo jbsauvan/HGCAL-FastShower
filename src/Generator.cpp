@@ -51,17 +51,16 @@ void Generator::simulate() {
   }
   if(debug) geometry_.print();
 
+  // The output file has the ownership
+  TH2Poly* geometry_histo = (TH2Poly*)geometry_.cellHistogram()->Clone("geometry");
+  geometry_histo->Write();
+
   // incident direction
   double phiinc = parameters_.generation().incident_phi;
   double thetainc = 2.*std::atan(std::exp(-parameters_.generation().incident_eta));
   double r = geometry_.getZlayer()*tan(thetainc); 
   double incident_x = r*cos(phiinc);
   double incident_y = r*sin(phiinc);
-
-  // draw the geometry
-  std::string title;
-  title = "Layer ";
-  title = title + std::to_string(parameters_.geometry().layer);
 
 
   ShowerParametrization aShowerParametrization(parameters_.shower());

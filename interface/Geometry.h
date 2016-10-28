@@ -58,7 +58,7 @@ class Geometry {
     double a3over2() const {return a3over2_;}
     double asqrt3over2() const {return asqrt3over2_;}
 
-    const TH2Poly* cellHistogram() const {return cell_histogram_;}
+    const std::unique_ptr<TH2Poly>& cellHistogram() const {return cell_histogram_;}
     void draw(const Parameters::Display& params);
     void print();
 
@@ -83,7 +83,7 @@ class Geometry {
     // This is supposed to be written into a root file
     // So it is currently not owned by the geometry
     // But maybe better to have a unique_ptr + SetDirectory(0)
-    TH2Poly* cell_histogram_;
+    std::unique_ptr<TH2Poly> cell_histogram_;
 
 };
 

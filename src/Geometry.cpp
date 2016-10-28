@@ -259,8 +259,8 @@ void Geometry::constructFromParameters(bool debug) {
   const int nverticeshexagon=6; // hexagons
   const int nverticestriangle=3; // hexagons  
   const std::array<double, nverticeshexagon> hexagonoffsetx = {{asqrt3over2_,asqrt3over2_,0.,-asqrt3over2_,-asqrt3over2_,0}};
-  const std::array<double,nverticeshexagon> hexagonoffsety = {{-aover2_,aover2_,a_,aover2_,-aover2_,-a_}};
-  const std::array<double,nverticestriangle> uptriangleoffsetx = {{aover2_,0.,-aover2_}};
+  const std::array<double, nverticeshexagon> hexagonoffsety = {{-aover2_,aover2_,a_,aover2_,-aover2_,-a_}};
+  const std::array<double, nverticestriangle> uptriangleoffsetx = {{aover2_,0.,-aover2_}};
   const std::array<double, nverticestriangle> uptriangleoffsety = {{-asqrt3over2_/3.,asqrt3_/3.,-asqrt3over2_/3.}};
   const std::array<double, nverticestriangle> downtriangleoffsetx = {{aover2_,-aover2_,0.}};
   const std::array<double,nverticestriangle> downtriangleoffsety = {{asqrt3over2_/3.,asqrt3over2_/3.,-asqrt3_/3.}};
@@ -272,9 +272,6 @@ void Geometry::constructFromParameters(bool debug) {
   if (klayer == -1) zlayer =  parameters_.layers_z[0];  // entry face required
   else zlayer = parameters_.layers_z[klayer]; // else offset from the layer z position
   setZlayer(zlayer);
-
-  // I index run along x axis is defined such that hexagons are adjacent by side along this axis
-  // J index runs along the y' axis is rotated by 60deg wrt x axis  
 
   // compute x,y positions of the geometry window
   double z = zlayer; 
@@ -302,24 +299,13 @@ void Geometry::constructFromParameters(bool debug) {
   };
 
 
-
   // x0,y0 is the origine of the tesselation
   // Which means that the center of cell (i,j)=(0,0) 
   // will be at (x,y)=(x0,y0)
-  std::array<double, 5> dx = {
-    xs[1]-xs[0],
-    xs[2]-xs[0],
-    xs[3]-xs[0],
-    xs[4]-xs[0],
-    xs[5]-xs[0]
-  };
-  std::array<double, 5> dy = {
-    ys[1]-ys[0],
-    ys[2]-ys[0],
-    ys[3]-ys[0],
-    ys[4]-ys[0],
-    ys[5]-ys[0]
-  };
+  std::array<double, 5> dx;
+  std::array<double, 5> dy;
+  for(unsigned i=0; i<dx.size(); i++) dx[i] = xs[i+1]-xs[0];
+  for(unsigned i=0; i<dy.size(); i++) dy[i] = ys[i+1]-ys[0];
 
   // partial derivatives of x,y vs i,j
   double dxdi = 0.;
@@ -344,22 +330,13 @@ void Geometry::constructFromParameters(bool debug) {
       break;
   };
   // compute i,j window needed to cover the x,y window
-  std::array<double,6> js = {
-    0.,
-    dy[0]/dydj,
-    dy[1]/dydj,
-    dy[2]/dydj,
-    dy[3]/dydj,
-    dy[4]/dydj
-  };
-  std::array<double,6> is = {
-    0.,
-    (dx[0]-js[1]*dxdj)/dxdi,
-    (dx[1]-js[2]*dxdj)/dxdi,
-    (dx[2]-js[3]*dxdj)/dxdi,
-    (dx[3]-js[4]*dxdj)/dxdi,
-    (dx[4]-js[5]*dxdj)/dxdi
-  };
+  std::array<double,6> js;
+  std::array<double,6> is;
+  js[0] = 0;
+  is[0] = 0;
+  for(unsigned i=1; i<js.size(); i++) js[i] = dy[i-1]/dydj;
+  for(unsigned i=1; i<is.size(); i++) is[i] = (dx[i-1]-js[i]*dxdj)/dxdi; 
+
   int imin = std::round(*(std::min_element(is.begin(), is.end())));
   int jmin = std::round(*(std::min_element(js.begin(), js.end())));
   int imax = std::round(*(std::max_element(is.begin(), is.end())));
@@ -461,10 +438,12 @@ void Geometry::constructFromParameters(bool debug) {
     }
   }
   // build histogram of cells
-  cell_histogram_ = new TH2Poly("cells", "cells",
+  cell_histogram_.reset(new TH2Poly("cells", "cells",
       x_min>0?x_min*0.9:x_min*1.1, x_max>0?x_max*1.1:x_max*0.9,
       y_min>0?y_min*0.9:y_min*1.1, y_max>0?y_max*1.1:y_max*0.9
-      );
+      ));
+  // take ownership of the histogram
+  cell_histogram_->SetDirectory(0);
   for (const auto& id_cell : cells_) { 
     const auto& cell = id_cell.second;
     std::vector<double> binsx, binsy;
@@ -507,7 +486,7 @@ void Geometry::print() {
 
 void Geometry::draw(const Parameters::Display& params) {
 
-  cell_histogram_->Draw();
+  //cell_histogram_->Draw();
 
   //std::array<double, 7> summitx, summity;
   //for (const auto& id_cell : cells_) { 
