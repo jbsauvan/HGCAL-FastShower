@@ -62,9 +62,6 @@ class Parameters
     {
       Display();
       unsigned events;
-      int size;
-      double offset_x;
-      double offset_y;
     };
 
   public:

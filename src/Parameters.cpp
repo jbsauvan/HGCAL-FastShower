@@ -66,10 +66,7 @@ Generation():
 
 Parameters::Display::
 Display():
-  events(0),
-  size(0),
-  offset_x(0.),
-  offset_y(0.)
+  events(0)
 {
 }
 
@@ -168,9 +165,6 @@ Parameters::
 fillDisplay(const python::dict& dict)
 {
   display_.events = python::extract<int>(dict["display_events"]);
-  display_.size = python::extract<int>(dict["display_size"]);
-  display_.offset_x = python::extract<double>(dict["display_offset_x"]);
-  display_.offset_y = python::extract<double>(dict["display_offset_y"]);
 }
 
 
@@ -230,6 +224,4 @@ print() const
   std::cout<<"|-- Direction = ("<<generation_.incident_eta<<" "<<generation_.incident_phi<<")\n";
   std::cout<<"|- Display\n";
   std::cout<<"|-- Events = "<<display_.events<<"\n";
-  std::cout<<"|-- Size = "<<display_.size<<"\n";
-  std::cout<<"|-- Offset = "<<display_.offset_x<<" "<<display_.offset_y<<"\n";
 }
