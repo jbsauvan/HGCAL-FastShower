@@ -281,22 +281,22 @@ void Geometry::constructFromParameters(bool debug) {
   double r_max = z*tan(theta_max);
   double phi_min = parameters_.phi_min;
   double phi_max = parameters_.phi_max;
-  std::array<double, 6> xs = {
+  std::array<double, 6> xs = {{
     r_min*cos(parameters_.phi_min),
     r_min*cos(parameters_.phi_max),
     r_max*cos(parameters_.phi_max),
     r_max*cos(parameters_.phi_min),
     r_min*cos((parameters_.phi_min+parameters_.phi_max)/2.),
     r_max*cos((parameters_.phi_min+parameters_.phi_max)/2.)
-  };
-  std::array<double, 6> ys = {
+  }};
+  std::array<double, 6> ys = {{
     r_min*sin(parameters_.phi_min),
     r_min*sin(parameters_.phi_max),
     r_max*sin(parameters_.phi_max),
     r_max*sin(parameters_.phi_min),
     r_min*sin((parameters_.phi_min+parameters_.phi_max)/2.),
     r_max*sin((parameters_.phi_min+parameters_.phi_max)/2.)
-  };
+  }};
 
 
   // x0,y0 is the origine of the tesselation
