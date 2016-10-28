@@ -55,10 +55,8 @@ void Geometry::constructFromJson(bool debug) {
   // first set klayer and zlayer according to user parameters
   setLayer(parameters_.layer);
   double zlayer;
-  if (klayer_ == -1) zlayer = 0.;  // entry face required
+  if (klayer_ == -1) zlayer = parameters_.layers_z[0];  // first layer
   else zlayer = parameters_.layers_z[klayer_]; // else offset from the layer z position
-  // to force being at the center for any requested layer
-  //zlayer = 0.; 
   setZlayer(zlayer);
 
   // json format from Marina 06/2016
@@ -271,17 +269,15 @@ void Geometry::constructFromParameters(bool debug) {
   cells_.clear();
 
   double zlayer;
-  if (klayer == -1) zlayer = 0.;  // entry face required
+  if (klayer == -1) zlayer =  parameters_.layers_z[0];  // entry face required
   else zlayer = parameters_.layers_z[klayer]; // else offset from the layer z position
-  // to force being at the center for any requested layer
-  //zlayer = 0.; 
   setZlayer(zlayer);
 
   // I index run along x axis is defined such that hexagons are adjacent by side along this axis
   // J index runs along the y' axis is rotated by 60deg wrt x axis  
 
   // compute x,y positions of the geometry window
-  double z = zlayer + 320.; // FIXME: remove hardcoded z0
+  double z = zlayer; 
   double theta_min = 2.*std::atan(std::exp(-parameters_.eta_max));
   double theta_max = 2.*std::atan(std::exp(-parameters_.eta_min));
   double r_min = z*tan(theta_min);

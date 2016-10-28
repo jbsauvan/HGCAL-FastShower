@@ -39,17 +39,7 @@ void Generator::simulate() {
   double energygenincells=0.;
   double energyrec=0.;
 
-  // incident direction
-  // coordinate of origin of simulated geometry/module in CMS frame is given by etainc,phiinc and z=320.;
-  // FIXME: remove hardcoded z0
-  double phiinc = parameters_.generation().incident_phi;
-  double thetainc = 2.*std::atan(std::exp(-parameters_.generation().incident_eta));
-  double z0 = 320.; // z ccordinate of first plane
-  double rt = z0*tan(thetainc); 
-  TVectorD direction(3);  
-  direction(0) = rt*cos(phiinc);
-  direction(1) = rt*sin(phiinc);
-  direction(2) = z0;
+
 
   TStopwatch t;
   t.Start();   
@@ -60,6 +50,13 @@ void Generator::simulate() {
     geometry_.constructFromJson(parameters_.general().debug);
   }
   if(debug) geometry_.print();
+
+  // incident direction
+  double phiinc = parameters_.generation().incident_phi;
+  double thetainc = 2.*std::atan(std::exp(-parameters_.generation().incident_eta));
+  double r = geometry_.getZlayer()*tan(thetainc); 
+  double incident_x = r*cos(phiinc);
+  double incident_y = r*sin(phiinc);
 
   // draw the geometry
   std::string title;
@@ -180,11 +177,6 @@ void Generator::simulate() {
         std::endl;
     }
 
-    // incident position
-    // FIXME: use absolute z position  in config
-    double z = geometry_.getZlayer() + z0;
-    double incident_x = z*direction(0)/direction(2);
-    double incident_y = z*direction(1)/direction(2);
 
     for (int i=0; i<nhits; i++) {
 
