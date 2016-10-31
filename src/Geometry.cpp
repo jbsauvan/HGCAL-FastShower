@@ -354,7 +354,7 @@ void Geometry::constructFromParameters(bool debug) {
       // up and down triangle barycenters are not aligned
       if(itype==Parameters::Geometry::Type::Triangles && i%2) y += asqrt3_/6.;
       double r = std::sqrt(x*x + y*y);
-      double phi = std::acos(x/r);
+      double phi = std::copysign(std::acos(x/r),y);
       // check if cell is inside boundaries. If not, skip it
       if(!(r>=r_min && r<=r_max &&
            TVector2::Phi_mpi_pi(phi-phi_min)>=0 && TVector2::Phi_mpi_pi(phi-phi_max)<=0

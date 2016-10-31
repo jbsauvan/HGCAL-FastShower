@@ -6,6 +6,7 @@
 #include "TFile.h"
 #include "TText.h"
 #include "TPaveText.h"
+#include "TMarker.h"
 
 #ifdef STANDALONE
 #include "Generator.h"
@@ -369,6 +370,14 @@ std::unique_ptr<TCanvas> Generator::display(const std::unordered_map<uint32_t,TH
   leg4->SetTextColor(kBlue);
   leg4->SetBorderSize(0.0);
   leg4->Draw();
+
+  // display incident position
+  double theta = 2.*std::atan(std::exp(-parameters_.generation().incident_eta));
+  double r = geometry_.getZlayer()*std::tan(theta);
+  double x = r*std::cos(parameters_.generation().incident_phi);
+  double y = r*std::sin(parameters_.generation().incident_phi);
+  TMarker* marker = new TMarker(x,y, 24);
+  marker->Draw();
 
   return c1;
 
