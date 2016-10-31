@@ -6,7 +6,7 @@ try:
     from shower_cfg import *
     from generation_cfg import *
     from display_cfg import *
-    from generation_utils import shoot_center_cell
+    from generation_utils import shoot_center_cell, shoot_vertex_cell
 except ImportError:
     # CMSSW imports
     from HGCalSimulation.FastShower.geometry_cfg import *
