@@ -19,7 +19,6 @@ events = 1
 debug = False
 output_file = 'test.root'
 
-geometry_type = 'Triangles'
 generation_incident_eta, generation_incident_phi = \
 shoot_cell_edge(eta=2.0, phi=0., edge_number=0,
                   # geometry window

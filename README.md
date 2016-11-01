@@ -100,10 +100,18 @@ The list of parameters in each group is as follows.
 | ------ | ------ | ------------ |  
 | `display_events` | `int` |  Number of events to display |  
 
-## Configuration utilities
+## Predefined configurations and utilities
 
-### Particle position
-The position of the generated position is given in (eta,phi), which requires some calculation if ones want to generate the particle at a particular position with respect to the cell grid.   
+### Predefined geometries
+Configuration files with predefined geometries are available:
+
+* `geometry_hexagon_large_cfg`, for hexagonal cells with the same size as large cells in CMSSW
+* `geometry_hexagon_small_cfg`, for hexagonal cells with the same size as small cells in CMSSW
+* `geometry_triangle_large_cfg`, for triangle cells with the same area as large cells in CMSSW
+* `geometry_triangle_small_cfg`, for triangle cells with the same area as small cells in CMSSW
+
+### Particle position utility
+The position of the generated particle is given in (eta,phi), which requires some calculation if ones wants to generate the particle at a particular position with respect to the cell grid.   
 Three functions are available to retrieve the (eta,phi) at the center, vertex or edge of a cell. They take an initial (eta,phi) as input and returns the (eta,phi) at the center of the closest cell, or at a given vertex or edge of the closest cell. They are defined in the file `python/generation_utils.py`. Currently they can only be used for the `Triangles` and `Hexagons` geometries, but not for external geometries.
 
 `shoot_cell_center` will return the (eta,phi) at the center of the closest cell.  
