@@ -20,7 +20,13 @@ ShowerShape::ShowerShape(const std::unordered_map<uint32_t,double>& enrjMap,
   jmax_ = std::numeric_limits<int16_t>::lowest();
   for (const auto& id_cell : cellMap) { 
     // FIXME: should avoid searching into enrjMap even if unordered_map search is constant time
-    double energy = enrjMap.at(id_cell.first);
+    double energy = 0.;
+    try {
+      energy = enrjMap.at(id_cell.first);
+    } catch(const std::out_of_range&) {
+      // do nothing (energy = 0)
+    }
+
     energySum_ = energySum_ + energy;
     if (energy>maxE1_) {
       maxCell_ = &id_cell.second;
