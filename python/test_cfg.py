@@ -13,6 +13,7 @@ except ImportError:
     from HGCalSimulation.FastShower.shower_cfg import *
     from HGCalSimulation.FastShower.generation_cfg import *
     from HGCalSimulation.FastShower.display_cfg import *
+    from HGCalSimulation.FastShower.generation_utils import shoot_cell_center, shoot_cell_vertex, shoot_cell_edge
 
 events = 1
 debug = False
