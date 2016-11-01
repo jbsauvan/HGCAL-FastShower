@@ -23,6 +23,9 @@ OutputService(const std::string& file_name):
   tree_->Branch("cell_energy", &cell_energy_);
   tree_->Branch("cell_x", &cell_x_);
   tree_->Branch("cell_y", &cell_y_);
+  tree_->Branch("cell_z", &cell_z_);
+  tree_->Branch("cell_eta", &cell_eta_);
+  tree_->Branch("cell_phi", &cell_phi_);
 }
 
 OutputService::
@@ -43,14 +46,26 @@ fillTree(const Event& event, const Geometry& geometry)
   gen_energy_ = event.generatedEnergy();
   gen_eta_ = event.generatedEta();
   gen_phi_ = event.generatedPhi();
-  cell_n_ = event.hits().size();
   for(const auto& id_hit : event.hits())
   {
-    cell_energy_.emplace_back(id_hit.second);
+    // skip zero and negative energies
+    if(id_hit.second<=0.) continue;
     const auto& cell = geometry.getCells().at(id_hit.first);
-    cell_x_.emplace_back(cell.getPosition()(0));
-    cell_y_.emplace_back(cell.getPosition()(1));
+    double x = cell.getPosition()(0);
+    double y = cell.getPosition()(1);
+    double z = cell.getPosition()(2);
+    double r = std::sqrt(x*x + y*y);
+    double theta = std::atan(r/z);
+    double eta = -std::log(std::tan(theta/2.));
+    double phi = std::copysign(std::acos(x/r),y);
+    cell_energy_.emplace_back(id_hit.second);
+    cell_x_.emplace_back(x);
+    cell_y_.emplace_back(y);
+    cell_z_.emplace_back(z);
+    cell_eta_.emplace_back(eta);
+    cell_phi_.emplace_back(phi);
   }
+  cell_n_ = cell_energy_.size();
   tree_->Fill();
 }
 
@@ -68,6 +83,9 @@ clear()
   cell_energy_.clear();
   cell_x_.clear();
   cell_y_.clear();
+  cell_z_.clear();
+  cell_eta_.clear();
+  cell_phi_.clear();
 }
 
 

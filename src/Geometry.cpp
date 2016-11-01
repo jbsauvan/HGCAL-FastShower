@@ -138,9 +138,10 @@ void Geometry::constructFromJson(bool debug) {
     const Json::Value& hexagon_attributes = hexagons[cell_name]; 
     int i_index = hexagon_attributes[0]["mapping_coord"][0].asInt();
     int j_index = hexagon_attributes[0]["mapping_coord"][1].asInt();
-    TVectorD position(2);
+    TVectorD position(3);
     position(0) = hexagon_attributes[1]["center_coord"][0].asDouble()/10.; // cm
     position(1) = hexagon_attributes[1]["center_coord"][1].asDouble()/10.; // cm
+    position(2) = getZlayer();
     double orientation = hexagon_attributes[2]["orientation"].asDouble();
     std::vector<TVectorD> vertices;
     for (unsigned i=0; i<hexagon_attributes[3]["vertex_coord_abs"].size(); i++) {
@@ -194,9 +195,10 @@ void Geometry::constructFromJson(bool debug) {
     const Json::Value& hexagon_attributes = half_hexagons[cell_name]; 
     int i_index = hexagon_attributes[0]["mapping_coord"][0].asInt();
     int j_index = hexagon_attributes[0]["mapping_coord"][1].asInt();
-    TVectorD position(2);
+    TVectorD position(3);
     position(0) = hexagon_attributes[1]["center_coord"][0].asDouble()/10.; // cm
     position(1) = hexagon_attributes[1]["center_coord"][1].asDouble()/10.; // cm
+    position(2) = getZlayer();
     double orientation = hexagon_attributes[2]["orientation"].asDouble(); 
     std::vector<TVectorD> vertices;
     for (unsigned i=0; i<hexagon_attributes[3]["vertex_coord_abs"].size(); i++) {
@@ -373,9 +375,10 @@ void Geometry::constructFromParameters(bool debug) {
           i << " " <<
           j << std::endl;
       }
-      TVectorD position(2);
+      TVectorD position(3);
       position(0) = x;
       position(1) = y;
+      position(2) = z;
       if (debug) {
         std::cout << " center coordinates : " << 
           x << " " <<
