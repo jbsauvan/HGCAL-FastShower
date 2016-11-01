@@ -28,7 +28,9 @@ def vertices(type, i, a):
 
 # find the center of the cell closest to (eta,phi)
 # it assumes that the cell 0 is located at (eta_max,phi_min)
-def shoot_center_cell(eta, phi, eta_min, eta_max, phi_min, phi_max, z, cell_side, type):
+def shoot_cell_center(eta, phi, eta_min, eta_max, phi_min, phi_max, z, cell_side, type):
+  if type not in ['Triangles', 'Hexagons']:
+    raise Exception('shoot_cell_center() not implemented for geometry type '+type)
   if eta<eta_min or eta>eta_max or\
      TVector2.Phi_mpi_pi(phi-phi_min)<0 or TVector2.Phi_mpi_pi(phi-phi_max)>0:
     raise Exception("Error: trying to shoot particle outside geometry window")
@@ -63,8 +65,10 @@ def shoot_center_cell(eta, phi, eta_min, eta_max, phi_min, phi_max, z, cell_side
 # FIXME: avoid duplicating code
 # find vertices of the cell closest to (eta,phi)
 # it assumes that the cell 0 is located at (eta_max,phi_min)
-def shoot_vertex_cell(eta, phi, vertex_number, 
+def shoot_cell_vertex(eta, phi, vertex_number, 
                       eta_min, eta_max, phi_min, phi_max, z, cell_side, type):
+  if type not in ['Triangles', 'Hexagons']:
+    raise Exception('shoot_cell_vertex() not implemented for geometry type '+type)
   if eta<eta_min or eta>eta_max or\
      TVector2.Phi_mpi_pi(phi-phi_min)<0 or TVector2.Phi_mpi_pi(phi-phi_max)>0:
     raise Exception("Error: trying to shoot particle outside geometry window")
