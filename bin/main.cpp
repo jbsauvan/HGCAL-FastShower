@@ -60,9 +60,10 @@ int main(int argc, char** argv) {
     std::cout<<excep<<"\n";
     return 3;
   }
-  catch(...)
+  catch(const std::exception& excep)
   {
     std::cout<<"An error occured while initializing the generator:\n";
+    std::cout<<excep.what()<<"\n";
     return 3;
   }
   return 0;
