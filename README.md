@@ -39,7 +39,7 @@ After the installation steps an executable is produced, `shower_simulation.exe`.
 ```bash
 shower_simulation.exe python/test_cfg.py
 ```
-### Configuration
+
 The configuration is written in python, generally in several files containing various groups of parameters. The parameters can be separated in the following groups:  
 
 * General, for general parameters
@@ -50,7 +50,7 @@ The configuration is written in python, generally in several files containing va
 
 The list of parameters in each group is as follows.
 
-#### General parameters
+### General parameters
 
 | Name | Values | Definition |  
 | -------- | -------- | ------------- |  
@@ -58,7 +58,7 @@ The list of parameters in each group is as follows.
 | `debug` | `bool` |  Flag to activate the debug mode |  
 | `output_file` | `string` |  Name of the output file |  
 
-#### Geometry parameters 
+### Geometry parameters 
 
 | Name | Values | Definition |  
 | ------ | ------ | ------------ |  
@@ -69,7 +69,7 @@ The list of parameters in each group is as follows.
 | `geometry_cell_side` | `float` | Size parameter of the cells (cm) (`geometry_type != External`) |
 | `geometry_eta/phi_min/max` | `float` | Simulated (eta,phi) window | 
 
-#### Generation parameters
+### Generation parameters
 
 | Name | Values | Definition |  
 | ------ | ------ | ------------ |  
@@ -82,7 +82,7 @@ The list of parameters in each group is as follows.
 | `generation_noise` | `bool` | Flag to activate electronic noise |  
 | `generation_noise_sigma` | `float`  | Noise in MIPs (`generation_noise = True`) |  
 
-#### Shower parameters
+### Shower parameters
 
 | Name | Values | Definition |  
 | ------ | ------ | ------------ |  
@@ -94,10 +94,53 @@ The list of parameters in each group is as follows.
 | `shower_transverse_parameters` | `dict(float)`  | Parameters for the transverse profile (parabolic function)  |   
 | `shower_longitudinal_parameters` | `dict(float)`  | Parameters for the longitudinal profile |  
 
-#### Display parameters
+### Display parameters
 
 | Name | Values | Definition |  
 | ------ | ------ | ------------ |  
 | `display_events` | `int` |  Number of events to display |  
 
+## Configuration utilities
+
+### Particle position
+The position of the generated position is given in (eta,phi), which requires some calculation if ones want to generate the particle at a particular position with respect to the cell grid.   
+Three functions are available to retrieve the (eta,phi) at the center, vertex or edge of a cell. They take an initial (eta,phi) as input and returns the (eta,phi) at the center of the closest cell, or at a given vertex or edge of the closest cell. They are defined in the file `python/generation_utils.py`. Currently they can only be used for the `Triangles` and `Hexagons` geometries, but not for external geometries.
+
+`shoot_cell_center` will return the (eta,phi) at the center of the closest cell.  
+```python
+def shoot_cell_center(
+	eta, phi, # initial (eta,phi)
+	eta_min, eta_max, # Geometry window
+	phi_min, phi_max,  # ...
+	z, # z of the layer
+	cell_side, # cell side
+	type # type of geometry
+)
+```
+`shoot_cell_vertex` will return the (eta,phi) at a specified vertex of the closest cell.   
+```python
+def shoot_cell_vertex(
+ 	eta, phi, # initial (eta,phi)
+	vertex_number, # vertex index
+	eta_min, eta_max, # Geometry window
+	phi_min, phi_max,  # ...
+	z, # z of the layer
+	cell_side, # cell side
+	type # type of geometry
+)
+```
+`shoot_cell_edge` will return the (eta,phi) at the middle of a specified edge of the closest cell.   
+```python
+def shoot_cell_edge(
+ 	eta, phi, # initial (eta,phi)
+	edge_number, # edge index
+	eta_min, eta_max, # Geometry window
+	phi_min, phi_max,  # ...
+	z, # z of the layer
+	cell_side, # cell side
+	type # type of geometry
+)
+``` 
+ 
+ 
 
