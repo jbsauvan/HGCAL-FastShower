@@ -6,7 +6,7 @@ try:
     from shower_cfg import *
     from generation_cfg import *
     from display_cfg import *
-    from generation_utils import shoot_cell_center, shoot_cell_vertex
+    from generation_utils import shoot_cell_center, shoot_cell_vertex, shoot_cell_edge
 except ImportError:
     # CMSSW imports
     from HGCalSimulation.FastShower.geometry_cfg import *
@@ -20,7 +20,7 @@ output_file = 'test.root'
 
 geometry_type = 'Triangles'
 generation_incident_eta, generation_incident_phi = \
-shoot_cell_center(eta=2.0, phi=0.,
+shoot_cell_edge(eta=2.0, phi=0., edge_number=0,
                   # geometry window
                   eta_min=geometry_eta_min, eta_max=geometry_eta_max, 
                   phi_min=geometry_phi_min, phi_max=geometry_phi_max, 
