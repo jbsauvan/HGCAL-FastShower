@@ -141,7 +141,7 @@ void Generator::simulate() {
     energygen = 0.;
     energygenincells = 0.;
     energyrec = 0.;
-    
+
     if (parameters_.generation().noise) {
       double calibratednoise = parameters_.generation().noise_sigma*parameters_.generation().mip_energy/parameters_.generation().sampling;
       for (auto& id_cell : cells) {
@@ -269,7 +269,6 @@ void Generator::simulate() {
     output_.fillTree(event, geometry_);
 
   }
-
   std::cout << std::endl;
   std::cout << nevents << " events generated " << std::endl;  
   std::cout << std::endl;
@@ -296,7 +295,6 @@ void Generator::simulate() {
   for(const auto& canvas_ptr : canvas) {
     canvas_ptr->Write();
   }
-
 
 }
 

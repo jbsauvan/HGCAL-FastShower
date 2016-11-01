@@ -38,6 +38,9 @@ class OutputService
     std::vector<float> cell_energy_;
     std::vector<float> cell_x_;
     std::vector<float> cell_y_;
+    std::vector<float> cell_z_;
+    std::vector<float> cell_eta_;
+    std::vector<float> cell_phi_;
 
     void clear();
 
