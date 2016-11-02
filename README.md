@@ -1,5 +1,22 @@
 # Fast shower integration tool for HGCAL geometry studies
 
+* [Installation](#Installation)
+	* [Standalone installation](#standalone-installation) 
+	* [CMSSW installation](#cmssw-installation) 
+* [Running and configuration](#running-and-configuration)
+	* [General parameters](#general-parameters) 
+	* [Geometry parameters](#geometry-parameters) 
+	* [Generation parameters](#generation-parameters) 
+	* [Shower parameters](#shower-parameters) 
+	* [Display parameters](#display-parameters)
+* [Predefined configurations and utilities](#predefined-configurations-and-utilities) 
+	* [Predefined geometries](#predefined-geometries)
+	* [Particle position utility](#particle-position-utility)
+* [Output](#output)
+	* [Event displays](#event-displays)
+	* [Tree](#tree)
+	
+
 
 ## Installation
 ### Standalone installation
@@ -151,4 +168,24 @@ def shoot_cell_edge(
 ``` 
  
  
+## Output
+
+Several objects are stored in the output ROOT file, including event displays and a ROOT tree.
+### Event displays
+Depending on the parameter `display_events`, event displays are produced, composed of an colored cell energy map and the position of the incident particle.
+
+### Tree
+For further analysis of the generated events a ROOT tree is produced, where each entry corresponds to an event and several branches stores information on the event, on the generated particle and on the simulated cell energies. The list of branches is the following:
+
+| Branch | Type | Definition |  
+| ------ | ------ | ------------ |  
+| `run` | `unsigned int` | Dummy run number | 
+| `event` | `unsigned int` | Event number |
+| `gen_energy` | `float` | Incident particle energy |
+| `gen_eta` | `float` | Incident particle eta |
+| `gen_phi` | `float` | Incident particle phi |
+| `cell_n` | `unsigned int` | Number of hit cells | 
+| `cell_energy` | `vector<float>` | Energies of hit cells |
+| `cell_x/y/z` | `vector<float>` | Position coordinates of the hit cells |
+| `cell_eta/phi` | `vector<float>` | Directions of the hit cells |
 
