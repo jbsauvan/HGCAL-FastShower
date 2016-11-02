@@ -1,6 +1,6 @@
 # Fast shower integration tool for HGCAL geometry studies
 
-* [Installation](#Installation)
+* [Installation](#installation)
 	* [Standalone installation](#standalone-installation) 
 	* [CMSSW installation](#cmssw-installation) 
 * [Running and configuration](#running-and-configuration)
