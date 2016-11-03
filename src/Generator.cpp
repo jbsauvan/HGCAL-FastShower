@@ -258,7 +258,7 @@ void Generator::simulate() {
     if (debug) std::cout << " incident energy: " << parameters_.generation().energy << " simulated energy: " << energygen << std::endl;    
 
     // if requested display a few events
-    if (iev<=nevents) {
+    if (iev<=parameters_.display().events) {
       for (const auto& id_energy : event.hits()) { 
         hCellEnergyEvtMap.at(id_energy.first).Reset();
         hCellEnergyEvtMap.at(id_energy.first).Fill(id_energy.second);
