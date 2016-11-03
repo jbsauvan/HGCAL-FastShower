@@ -1,4 +1,4 @@
-# Fast shower integration tool for HGCAL geometry studies
+# Fast simulation tool for HGCAL geometry studies
 
 * [Installation](#installation)
 	* [Standalone installation](#standalone-installation) 
